@@ -1,7 +1,9 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
+#include <QDockWidget>
 #include "ui_GeoModeling.h"
+#include "ui_Control.h"
 
 class GeoModeling : public QMainWindow
 {
@@ -12,4 +14,5 @@ public:
 
 private:
 	Ui::GeoModelingClass ui;
+	Ui::ControlPanel ui_control;
 };
