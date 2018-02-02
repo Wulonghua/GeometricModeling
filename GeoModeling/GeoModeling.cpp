@@ -7,6 +7,7 @@ GeoModeling::GeoModeling(QWidget *parent)
 	ui_control.setupUi(dockw);
 	QDockWidget *dock = new QDockWidget();
 	dock->setWidget(dockw);
+	dock->setMinimumWidth(300);
 	this->addDockWidget(Qt::LeftDockWidgetArea, dock);
 	ui.setupUi(this);
 }
