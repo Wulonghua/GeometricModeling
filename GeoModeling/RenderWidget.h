@@ -1,7 +1,9 @@
 #pragma once
 
 #include "QGLViewer\qglviewer.h"
+#include "Curve.h"
 #include <iostream>
+#include <memory>
 #include <QMouseEvent>
 #include <QKeyEvent>
 
@@ -11,6 +13,9 @@ class RenderWidget :
 public:
 	RenderWidget(QWidget *parent);
 	~RenderWidget();
+
+
+	void setCurve(std::shared_ptr<Curve>& curve) { m_curve = curve; }
 
 protected:
 	virtual void draw();
@@ -33,6 +38,9 @@ private:
 	int	   m_viewport[4];
 	double unproj_p0[3];
 	double unproj_p1[3];
+
+
+	std::shared_ptr<Curve> m_curve;
 };
 
 inline void RenderWidget::transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])

@@ -14,8 +14,13 @@ class GeoModeling : public QMainWindow
 
 public:
 	GeoModeling(QWidget *parent = Q_NULLPTR);
+	
+public slots:
+	void changeControlState();
+
 
 private:
+	void initConnections();
 	Ui::GeoModelingClass ui;
 	Ui::ControlPanel ui_control;
 

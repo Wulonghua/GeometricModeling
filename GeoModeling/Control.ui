@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>309</width>
-    <height>442</height>
+    <width>241</width>
+    <height>358</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,8 +18,8 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>291</width>
-     <height>171</height>
+     <width>221</width>
+     <height>191</height>
     </rect>
    </property>
    <property name="title">
@@ -43,6 +43,9 @@
        <property name="text">
         <string>Bezier Curve</string>
        </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
@@ -65,28 +68,48 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>130</y>
-      <width>269</width>
-      <height>24</height>
+      <y>120</y>
+      <width>181</width>
+      <height>61</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
       <widget class="QRadioButton" name="radioButton_Sampling">
        <property name="text">
         <string>Sampling</string>
        </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
-     <item>
-      <widget class="QRadioButton" name="radioButton_2">
+     <item row="0" column="1">
+      <widget class="QRadioButton" name="radioButton_">
        <property name="text">
         <string>Subdivision</string>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLineEdit" name="lineEdit_curve_sampling"/>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_precision">
+       <property name="text">
+        <string>Precision</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QSpinBox" name="spinBox_precision">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>100</number>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -95,8 +118,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>190</y>
-     <width>291</width>
+     <y>210</y>
+     <width>221</width>
      <height>121</height>
     </rect>
    </property>
@@ -117,6 +140,9 @@
       <widget class="QRadioButton" name="radioButton_addPoints">
        <property name="text">
         <string>Add Points</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

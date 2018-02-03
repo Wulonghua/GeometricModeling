@@ -18,19 +18,29 @@ void RenderWidget::keyPressEvent(QKeyEvent *e)
 }
 
 void RenderWidget::mousePressEvent(QMouseEvent * e)
-{
-	camera()->getModelViewMatrix(m_ModelView);
-	camera()->getProjectionMatrix(m_Projection);
-	camera()->getViewport(m_viewport);
+{  
+	if (m_curve->m_contrlType == Curve::ADD)
+	{
+		camera()->getModelViewMatrix(m_ModelView);
+		camera()->getProjectionMatrix(m_Projection);
+		camera()->getViewport(m_viewport);
 
-	float winX = e->pos().x();
-	float winY = e->pos().y();
+		float winX = e->pos().x();
+		float winY = e->pos().y();
 
-	gluUnProject(winX, winY, 0.0, m_ModelView, m_Projection, m_viewport, &unproj_p0[0], &unproj_p0[1], &unproj_p0[2]);
-	gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
-	std::cout << unproj_p0[0] << " " << unproj_p0[1] << " " << unproj_p0[2] << std::endl;
-	std::cout << unproj_p1[0] << " " << unproj_p1[1] << " " << unproj_p1[2] << std::endl;
-	//QGLViewer::mousePressEvent(e);
+		gluUnProject(winX, winY, 0.0, m_ModelView, m_Projection, m_viewport, &unproj_p0[0], &unproj_p0[1], &unproj_p0[2]);
+		gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
+
+		m_curve->addControlPoints(unproj_p0, unproj_p1);
+		std::cout << m_curve->m_ctls.col(m_curve->n_ctls - 1) << std::endl;
+		//std::cout << unproj_p0[0] << " " << unproj_p0[1] << " " << unproj_p0[2] << std::endl;
+		//std::cout << unproj_p1[0] << " " << unproj_p1[1] << " " << unproj_p1[2] << std::endl;
+		
+	}
+	else if(m_curve->m_contrlType == Curve::VIEW)
+	{ 
+		QGLViewer::mousePressEvent(e);
+	}
 }
 
 void RenderWidget::mouseMoveEvent(QMouseEvent * e)
