@@ -68,6 +68,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Curve.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_GeoModeling.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -109,6 +110,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Curve.h" />
     <ClInclude Include="GeneratedFiles\ui_Control.h" />
     <ClInclude Include="GeneratedFiles\ui_GeoModeling.h" />
     <ClInclude Include="RenderWidget.h" />

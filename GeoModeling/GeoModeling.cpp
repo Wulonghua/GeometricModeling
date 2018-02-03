@@ -10,4 +10,6 @@ GeoModeling::GeoModeling(QWidget *parent)
 	dock->setMinimumWidth(300);
 	this->addDockWidget(Qt::LeftDockWidgetArea, dock);
 	ui.setupUi(this);
+
+	m_curve = std::make_shared<Curve>();
 }

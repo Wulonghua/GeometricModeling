@@ -97,7 +97,7 @@
      <x>10</x>
      <y>190</y>
      <width>291</width>
-     <height>91</height>
+     <height>121</height>
     </rect>
    </property>
    <property name="title">
@@ -109,7 +109,7 @@
       <x>20</x>
       <y>30</y>
       <width>97</width>
-      <height>49</height>
+      <height>76</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -124,6 +124,13 @@
       <widget class="QRadioButton" name="radioButton_movePoints">
        <property name="text">
         <string>Move Points</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioButton_View">
+       <property name="text">
+        <string>View</string>
        </property>
       </widget>
      </item>
