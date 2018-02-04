@@ -43,9 +43,15 @@ void RenderWidget::mousePressEvent(QMouseEvent * e)
 		gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
 
 		m_curve->addControlPoints(unproj_p0, unproj_p1);
-		m_ctlBuf.bind();
-		Eigen::Matrix3Xf  ctls = m_curve->m_ctls.cast<float>();
-		m_ctlBuf.allocate(ctls.data(), sizeof(GLfloat) * 3 * m_curve->n_ctls);
+		//QOpenGLVertexArrayObject::Binder binder_ctl(&m_vao_ctl);
+		//m_vao_ctl.bind();
+		m_vertBuf.bind();
+		m_vertBuf.allocate(sizeof(GLfloat) * 3 * (m_curve->n_ctls+m_curve->n_points));
+		Eigen::Matrix3Xf  ctls = m_curve->m_ctls.cast<float>();	
+		Eigen::Matrix3Xf points = m_curve->m_points.cast<float>();
+		m_vertBuf.write(0, ctls.data(), 3*m_curve->n_ctls * sizeof(float));
+		m_vertBuf.write(3 * m_curve->n_ctls * sizeof(float), points.data(), 3 * m_curve->n_points * sizeof(float));
+		//m_vao_point.release();
 		update();
 		//std::cout << m_curve->m_ctls.col(m_curve->n_ctls - 1) << std::endl;
 		//std::cout << unproj_p0[0] << " " << unproj_p0[1] << " " << unproj_p0[2] << std::endl;
@@ -80,8 +86,12 @@ void RenderWidget::init()
 	m_posAttr = m_program->attributeLocation("posAttr");
 	//m_colUniform = m_program->attributeLocation("col");
 	//m_mvpUniform = m_program->uniformLocation("mvp");
-
-	m_ctlBuf.create();
+	//m_vao_ctl.create();
+	//QOpenGLVertexArrayObject::Binder binder_ctl(&m_vao_ctl);
+	m_vertBuf.create();
+	
+	//m_vao_point.create();
+	//QOpenGLVertexArrayObject::Binder binder_point(&m_vao_point);
 	//m_ctlBuf.bind();
 	//if (m_curve && m_curve->n_ctls > 0) 
 	//{
@@ -98,18 +108,24 @@ void RenderWidget::draw()
 	camera()->getModelViewProjectionMatrix(m_mvpMat.data());
 	m_program->setUniformValue("mvp", m_mvpMat);
 	m_program->setUniformValue("col", QVector3D(1.0, 0.0, 0.0));
-
-	m_ctlBuf.bind();
 	m_program->setAttributeBuffer(m_posAttr, GL_FLOAT, 0, 3);
 	m_program->enableAttributeArray(m_posAttr);
 
+	//m_vao_ctl.bind();
+	m_vertBuf.bind();
 	glPointSize(5);
 	glDrawArrays(GL_POINTS, 0, m_curve->n_ctls);
 	
 
-	m_program->setUniformValue("col", QVector3D(1.0, 1.0, 0.0));
+	m_program->setUniformValue("col", QVector3D(0.0, 1.0, .0));
 	glLineWidth(2);
 	glDrawArrays(GL_LINE_STRIP, 0, m_curve->n_ctls);
+	//m_vao_ctl.release();
+
+	//m_vao_point.bind();
+	m_program->setUniformValue("col", QVector3D(1.0, 1.0, 0.0));
+	glDrawArrays(GL_LINE_STRIP, m_curve->n_ctls, m_curve->n_points);
+	//m_vao_point.release();
 
 	m_program->release();
 

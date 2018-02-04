@@ -45,7 +45,9 @@ private:
 	GLuint m_posAttr;
 
 	QMatrix4x4 m_mvpMat;
-	QOpenGLBuffer m_ctlBuf;
+	//QOpenGLVertexArrayObject m_vao_ctl;
+	//QOpenGLVertexArrayObject m_vao_point;
+	QOpenGLBuffer m_vertBuf;
 	QOpenGLShaderProgram *m_program;
 
 
