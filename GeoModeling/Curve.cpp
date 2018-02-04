@@ -2,7 +2,7 @@
 
 Curve::Curve():n_ctls(0),m_curveType(Bezier),m_contrlType(ADD)
 {
-	m_ctls = Eigen::Matrix3d::Zero(3, 1000);      // assume that there will be no more than 1000 control points.
+	m_ctls = Eigen::Matrix3Xd::Zero(3, 1000);      // assume that there will be no more than 1000 control points.
 }
 
 

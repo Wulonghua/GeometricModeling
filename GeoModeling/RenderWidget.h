@@ -6,14 +6,17 @@
 #include <memory>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include <QOpenGLFunctions>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLShaderProgram>
 
 class RenderWidget :
-	public QGLViewer
+	public QGLViewer, protected QOpenGLFunctions
 {
 public:
 	RenderWidget(QWidget *parent);
 	~RenderWidget();
-
 
 	void setCurve(std::shared_ptr<Curve>& curve) { m_curve = curve; }
 
@@ -38,6 +41,12 @@ private:
 	int	   m_viewport[4];
 	double unproj_p0[3];
 	double unproj_p1[3];
+
+	GLuint m_posAttr;
+
+	QMatrix4x4 m_mvpMat;
+	QOpenGLBuffer m_ctlBuf;
+	QOpenGLShaderProgram *m_program;
 
 
 	std::shared_ptr<Curve> m_curve;
