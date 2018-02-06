@@ -33,9 +33,32 @@ void GeoModeling::changeControlState()
 	}
 }
 
+void GeoModeling::changeCurveType()
+{
+	if (ui_control.radioButton_Bezier->isChecked())
+	{
+		m_curve->m_curveType = Curve::Bezier;
+		m_curve->generateBezierPoints();
+	}
+	else if (ui_control.radioButton_Quadric_Bspline->isChecked())
+	{
+		m_curve->m_curveType = Curve::Quadric_B_spline;
+		m_curve->generateQuadBspline();
+	}
+	else if (ui_control.radioButton_Cubic_Bspline->isChecked())
+	{
+		m_curve->m_curveType = Curve::Cubic_B_spline;
+		m_curve->generateCubicBspline();
+	}
+	ui.glWidget->updateRender();
+}
+
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
 	connect(ui_control.radioButton_movePoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
 	connect(ui_control.radioButton_View, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
+	connect(ui_control.radioButton_Bezier, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
+	connect(ui_control.radioButton_Quadric_Bspline, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
+	connect(ui_control.radioButton_Cubic_Bspline, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
 }

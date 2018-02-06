@@ -19,6 +19,7 @@ public:
 	~RenderWidget();
 
 	void setCurve(std::shared_ptr<Curve>& curve) { m_curve = curve; }
+	void updateRender();
 
 protected:
 	virtual void draw();
@@ -45,8 +46,6 @@ private:
 	GLuint m_posAttr;
 
 	QMatrix4x4 m_mvpMat;
-	//QOpenGLVertexArrayObject m_vao_ctl;
-	//QOpenGLVertexArrayObject m_vao_point;
 	QOpenGLBuffer m_vertBuf;
 	QOpenGLShaderProgram *m_program;
 
