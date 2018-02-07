@@ -1,9 +1,10 @@
 #include "Curve.h"
 
 Curve::Curve():
-	n_ctls(0),n_points(0),n_precision(20),
+	n_ctls(0),n_points(0),n_precision(5),
 	m_curveType(Bezier),
-	m_contrlType(ADD)
+	m_contrlType(ADD),
+	m_genType(SAMPLE)
 {
 	m_ctls = Eigen::Matrix3Xd::Zero(3, 1000);      // assume that there will be no more than 1000 control points.
 	m_points = Eigen::Matrix3Xd::Zero(3, 10000);   // assume that there will be no more than 10000 rendering points.
@@ -66,22 +67,97 @@ void Curve::computeBersteins(int n)
 		m_bernPoly[i] = getBinomialCoeff(n, i);
 }
 
+std::vector<Eigen::Vector3d> Curve::cancatenatePoints(std::vector<Eigen::Vector3d> poly1, std::vector<Eigen::Vector3d> poly2)
+{	
+	if (poly1.size() == 0 && poly2.size() != 0)
+		return poly2;
+	if (poly2.size() == 0 && poly1.size() != 0)
+		return poly1;
+	std::vector<Eigen::Vector3d> poly;
+	if (poly1.back() == poly2.front())
+	{
+		poly.insert(poly.end(),poly1.begin(),poly1.end()-1);
+		poly.insert(poly.end(),poly2.begin(),poly2.end());
+	}
+	else
+	{
+		poly.insert(poly.end(), poly1.begin(), poly1.end());
+		poly.insert(poly.end(), poly2.begin(), poly2.end());
+	}
+	return poly;
+}
+
+std::vector<Eigen::Vector3d> Curve::OneSubdivide(std::vector<Eigen::Vector3d> points, std::vector<Eigen::Vector3d>& poly1, std::vector<Eigen::Vector3d>& poly2, double u)
+{
+	std::vector<Eigen::Vector3d> poly;
+	int n = points.size() - 1;
+	if (n == 0) 
+	{
+		poly = poly1;
+		poly.push_back(points[0]);
+		return cancatenatePoints(poly, poly2);
+	}
+	else
+	{
+		Eigen::Vector3d p0 = points.front();
+		Eigen::Vector3d pn = points.back();
+		poly1.push_back(p0);
+		poly2.insert(poly2.begin(), pn);
+		std::vector<Eigen::Vector3d> pts;
+		pts.resize(n);
+		for (int i = 0; i < n; ++i) 
+		{
+			pts[i] = points[i] + u * (points[i + 1] - points[i]);
+		}
+		return OneSubdivide(pts, poly1, poly2, u);
+	}
+}
+
+std::vector<Eigen::Vector3d> Curve::getControlPointsVector()
+{
+	std::vector<Eigen::Vector3d> v;
+	v.resize(n_ctls);
+	for (int i = 0; i < n_ctls; ++i)
+	{
+		v[i] = m_ctls.col(i);
+	}
+	return v;
+}
+
+void Curve::setRenderPoints(const std::vector<Eigen::Vector3d>& v)
+{
+	n_points = v.size();
+	for (int i = 0; i < n_points; ++i)
+	{
+		m_points.col(i) = v[i];
+	}
+}
+
 void Curve::generateBezierPoints()
 {
 	if (n_ctls < 2) return;
-	n_points = (n_ctls-1)*n_precision+1;
-	double itv = 1.0 / (n_points - 1);
-	int n = n_ctls - 1;
-	computeBersteins(n);
-	for (int k = 0; k < n_points; ++k)
+	if (m_genType == SAMPLE)
 	{
-		double u = itv*double(k);
-		Eigen::Vector3d p = Eigen::Vector3d::Zero();
-		for (int i = 0; i < n_ctls; ++i)
+		n_points = (n_ctls - 1)*n_precision + 1;
+		double itv = 1.0 / (n_points - 1);
+		int n = n_ctls - 1;
+		computeBersteins(n);
+		for (int k = 0; k < n_points; ++k)
 		{
-			p += m_ctls.col(i)*m_bernPoly[i] * std::pow(u, i)*std::pow(1 - u, n - i);
+			double u = itv*double(k);
+			Eigen::Vector3d p = Eigen::Vector3d::Zero();
+			for (int i = 0; i < n_ctls; ++i)
+			{
+				p += m_ctls.col(i)*m_bernPoly[i] * std::pow(u, i)*std::pow(1 - u, n - i);
+			}
+			m_points.col(k) = p;
 		}
-		m_points.col(k) = p;
+	}
+	else if (m_genType == SUBDIVISION)
+	{
+		std::vector<Eigen::Vector3d> pts = getControlPointsVector();
+		std::vector<Eigen::Vector3d> points = Subdivide(pts, n_precision, 0.5);
+		setRenderPoints(points);
 	}
 }
 
@@ -139,6 +215,39 @@ void Curve::generateCubicBspline()
 			U[0] = u*u*u; U[1] = u*u; U[2] = u; U[3] = 1;
 			m_points.col(k) = P*M*U;
 		}
+	}
+}
+
+void Curve::generateCurves()
+{
+	if (m_curveType = Bezier)
+		generateBezierPoints();
+	else if (m_curveType = Quadric_B_spline)
+		generateQuadBspline();
+	else if (m_curveType = Cubic_B_spline)
+		generateCubicBspline();
+}
+
+std::vector<Eigen::Vector3d> Curve::Subdivide(std::vector<Eigen::Vector3d> points, int m, double u)
+{
+	std::vector<Eigen::Vector3d> poly1;
+	std::vector<Eigen::Vector3d> poly2;
+	if (m == 1)
+	{
+		return	OneSubdivide(points, poly1, poly2, u);
+	}
+	else
+	{
+		std::vector<Eigen::Vector3d> poly_half1;
+		std::vector<Eigen::Vector3d> poly_half2;
+		std::vector<Eigen::Vector3d> pts;
+		pts = OneSubdivide(points, poly1, poly2, u);
+		int n = (pts.size() - 1) / 2;
+		std::vector<Eigen::Vector3d> pts1(pts.begin(),pts.begin()+n+1);
+		std::vector<Eigen::Vector3d> pts2(pts.begin()+n,pts.end());
+		poly_half1 = Subdivide(pts1, m - 1, u);
+		poly_half2 = Subdivide(pts2, m - 1, u);
+		return cancatenatePoints(poly_half1, poly_half2);
 	}
 }
 

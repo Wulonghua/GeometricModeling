@@ -15,18 +15,26 @@ public:
 	void generateBezierPoints();
 	void generateQuadBspline();
 	void generateCubicBspline();
+	void generateCurves();
+	std::vector<Eigen::Vector3d> Subdivide(std::vector<Eigen::Vector3d> points, int m, double u);
 
 private:
 	double getBinomialCoeff(int n, int i);    // compute C_n^i
 	void computeBersteins(int n);
-
+	std::vector<Eigen::Vector3d> cancatenatePoints(std::vector<Eigen::Vector3d> poly1, std::vector<Eigen::Vector3d> poly2);
+	std::vector<Eigen::Vector3d> OneSubdivide(std::vector<Eigen::Vector3d> points,
+		std::vector<Eigen::Vector3d>& poly1, std::vector<Eigen::Vector3d>& poly2, double u);
+	std::vector<Eigen::Vector3d> getControlPointsVector();
+	void setRenderPoints(const std::vector<Eigen::Vector3d>& v);
 
 public:
 	enum Curve_Type {Bezier, Cubic_B_spline, Quadric_B_spline};
 	enum Control_Type {ADD, MOVE, VIEW};
+	enum Gen_Type { SAMPLE, SUBDIVISION };
 
 	Curve_Type		m_curveType;
 	Control_Type	m_contrlType;
+	Gen_Type		m_genType;
 
 	int n_ctls;                // number of control points
 	int n_points;              // number of rendering points
