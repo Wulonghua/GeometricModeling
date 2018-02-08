@@ -7,7 +7,7 @@ Curve::Curve():
 	m_genType(SAMPLE)
 {
 	m_ctls = Eigen::Matrix3Xd::Zero(3, 1000);      // assume that there will be no more than 1000 control points.
-	m_points = Eigen::Matrix3Xd::Zero(3, 10000);   // assume that there will be no more than 10000 rendering points.
+	m_points = Eigen::Matrix3Xd::Zero(3, 100000);   // assume that there will be no more than 10000 rendering points.
 }
 
 
@@ -20,6 +20,8 @@ void Curve::reset()
 {
 	n_ctls = 0;
 	n_points = 0;
+	m_ctls = Eigen::Matrix3Xd::Zero(3, 1000);
+	m_points = Eigen::Matrix3Xd::Zero(3, 100000);
 }
 
 void Curve::addControlPoints(double p0[3], double p1[3])
@@ -164,26 +166,52 @@ void Curve::generateBezierPoints()
 void Curve::generateQuadBspline()
 {
 	if (n_ctls < 3) return;
-	int n = n_ctls - 2;
-	n_points = n*n_precision;
-	double itv = 1.0 / n_precision;
-	double u;
-	Eigen::Matrix3d M, P;
-	Eigen::Vector3d U;
-	M << 0.5, -1, 0.5,
-		-1, 1, 0.5,
-		0.5, 0, 0;
-	// use column order matrix/vector, so the matrix form is transposed to 
-	// that of the form in the course note.
-	for (int i = 0; i < n; ++i)
+	if (m_genType == SAMPLE)
 	{
-		P = m_ctls.block<3, 3>(0,i);
-		for (int j = 0; j < n_precision; ++j)
+		int n = n_ctls - 2;
+		n_points = n*n_precision+1;
+		double itv = 1.0 / n_precision;
+		double u;
+		Eigen::Matrix3d M, P;
+		Eigen::Vector3d U;
+		M << 0.5, -1, 0.5,
+			-1, 1, 0.5,
+			0.5, 0, 0;
+		// use column order matrix/vector, so the matrix form is transposed to 
+		// that of the form in the course note.
+		for (int i = 0; i < n; ++i)
 		{
-			int k = i*n_precision + j;
-			u = /*double(i) + */itv*j;
-			U[0] = u*u; U[1] = u; U[2] = 1;
-			m_points.col(k) = P*M*U;
+			P = m_ctls.block<3, 3>(0, i);
+			for (int j = 0; j < n_precision; ++j)
+			{
+				int k = i*n_precision + j;
+				u = /*double(i) + */itv*j;
+				U[0] = u*u; U[1] = u; U[2] = 1;
+				m_points.col(k) = P*M*U;
+			}
+			if (i == n - 1)
+			{
+				U[0] = U[1] = U[2] = 1;
+				m_points.col(n_points - 1) = P*M*U;
+			}
+				
+		}
+	}
+	else if (m_genType == SUBDIVISION)
+	{
+		Eigen::Matrix3Xd pts = m_ctls.leftCols(n_ctls);
+		int n_pts = n_ctls;
+		for (int i = 0; i < n_precision; ++i)
+		{
+			n_points = (n_pts - 1) * 2;
+			int n = n_pts - 1;
+			for (int j = 0; j < n; ++j)
+			{
+				m_points.col(2 * j) = 0.25*(3 * pts.col(j) + pts.col(j + 1));
+				m_points.col(2 * j + 1) = 0.25*(pts.col(j) + 3 * pts.col(j + 1));
+			}
+			pts = m_points.leftCols(n_points);
+			n_pts = n_points;
 		}
 	}
 }
@@ -192,7 +220,7 @@ void Curve::generateCubicBspline()
 {
 	if (n_ctls < 4) return;
 	int n = n_ctls - 3;
-	n_points = n*n_precision;
+	n_points = n*n_precision+1;
 	double itv = 1.0 / n_precision;
 	double u;
 	Eigen::Matrix4d M;
@@ -214,6 +242,11 @@ void Curve::generateCubicBspline()
 			u = /*double(i) + */itv*j;
 			U[0] = u*u*u; U[1] = u*u; U[2] = u; U[3] = 1;
 			m_points.col(k) = P*M*U;
+		}
+		if (i == n - 1)
+		{
+			U[0] = U[1] = U[2] = U[3] = 1;
+			m_points.col(n_points - 1) = P*M*U;
 		}
 	}
 }

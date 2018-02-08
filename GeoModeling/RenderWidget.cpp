@@ -27,8 +27,8 @@ void RenderWidget::updateRender()
 {
 	m_vertBuf.bind();
 	m_vertBuf.allocate(sizeof(GLfloat) * 3 * (m_curve->n_ctls + m_curve->n_points));
-	Eigen::Matrix3Xf  ctls = m_curve->m_ctls.cast<float>();
-	Eigen::Matrix3Xf points = m_curve->m_points.cast<float>();
+	Eigen::Matrix3Xf  ctls = m_curve->m_ctls.leftCols(m_curve->n_ctls).cast<float>();
+	Eigen::Matrix3Xf points = m_curve->m_points.leftCols(m_curve->n_points).cast<float>();
 	m_vertBuf.write(0, ctls.data(), 3 * m_curve->n_ctls * sizeof(float));
 	m_vertBuf.write(3 * m_curve->n_ctls * sizeof(float), points.data(), 3 * m_curve->n_points * sizeof(float));
 	update();

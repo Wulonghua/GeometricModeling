@@ -87,6 +87,12 @@ void GeoModeling::changePrecision(int x)
 	ui.glWidget->updateRender();
 }
 
+void GeoModeling::clearState()
+{
+	m_curve->reset();
+	ui.glWidget->updateRender();
+}
+
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
@@ -98,4 +104,5 @@ void GeoModeling::initConnections()
 	connect(ui_control.radioButton_Sampling, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
 	connect(ui_control.radioButton_Subdivision, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
 	connect(ui_control.spinBox_precision, QOverload<int>::of(&QSpinBox::valueChanged), this, &GeoModeling::changePrecision);
+	connect(ui_control.pushButton_clear, &QPushButton::clicked, this, &GeoModeling::clearState);
 }

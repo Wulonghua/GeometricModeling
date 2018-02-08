@@ -19,6 +19,7 @@ public slots:
 	void changeControlState();
 	void changeCurveType();
 	void changePrecision(int x);
+	void clearState();
 
 
 private:
