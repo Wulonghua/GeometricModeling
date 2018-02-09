@@ -12,6 +12,8 @@ public:
 
 	void reset();
 	void addControlPoints(double p0[3], double p1[3]); // add point from the selecting line intersecting at the xy plane
+	void setControlPoint(double p0[3], double p1[3], int id);
+	int  pickControlPoint(double p0[3], double p1[3]);
 	void generateBezierPoints();
 	void generateQuadBspline();
 	void generateCubicBspline();

@@ -38,18 +38,40 @@ void Curve::addControlPoints(double p0[3], double p1[3])
 	m_ctls(1, n_ctls) = y;
 	n_ctls++;
 
-	if (m_curveType == Bezier) 
+	generateCurves();
+}
+
+void Curve::setControlPoint(double p0[3], double p1[3], int id)
+{
+	double t = p0[2] / (p0[2] - p1[2]);
+	double x = p0[0] + (p1[0] - p0[0])*t;
+	double y = p0[1] + (p1[1] - p0[1])*t;
+	m_ctls(0, id) = x;
+	m_ctls(1, id) = y;
+
+	generateCurves();
+}
+
+int Curve::pickControlPoint(double p0[3], double p1[3])
+{
+	double e = 1e-3;
+	double d2;
+	Eigen::Vector3d x1(p0[0],p0[1],p0[2]);
+	Eigen::Vector3d x2(p1[0],p1[1],p1[2]);
+
+	for (int i = 0; i < n_ctls; ++i)
 	{
-		generateBezierPoints();
+		
+		Eigen::Vector3d x10 = x1 - m_ctls.col(i);
+		Eigen::Vector3d x21 = x2 - x1;
+		double a = x10.dot(x10);
+		double b = x21.dot(x21);
+		double c = x10.dot(x21);
+		d2 = (a*b - c*c) / b;
+		if (d2 < e)
+			return i;
 	}
-	else if (m_curveType == Quadric_B_spline)
-	{
-		generateQuadBspline();
-	}
-	else if (m_curveType == Cubic_B_spline)
-	{
-		generateCubicBspline();
-	}
+	return -1;
 }
 
 double Curve::getBinomialCoeff(int n, int i)
@@ -253,12 +275,18 @@ void Curve::generateCubicBspline()
 
 void Curve::generateCurves()
 {
-	if (m_curveType = Bezier)
+	if (m_curveType == Bezier)
+	{
 		generateBezierPoints();
-	else if (m_curveType = Quadric_B_spline)
+	}
+	else if (m_curveType == Quadric_B_spline)
+	{
 		generateQuadBspline();
-	else if (m_curveType = Cubic_B_spline)
+	}
+	else if (m_curveType == Cubic_B_spline)
+	{
 		generateCubicBspline();
+	}
 }
 
 std::vector<Eigen::Vector3d> Curve::Subdivide(std::vector<Eigen::Vector3d> points, int m, double u)

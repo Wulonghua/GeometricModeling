@@ -14,7 +14,7 @@ static const char *fragmentShaderSource =
 "}\n";
 
 RenderWidget::RenderWidget(QWidget *parent):
-	QGLViewer(parent)
+	QGLViewer(parent),m_picked(-1)
 {
 }
 
@@ -56,19 +56,36 @@ void RenderWidget::mousePressEvent(QMouseEvent * e)
 		m_curve->addControlPoints(unproj_p0, unproj_p1);
 		updateRender();
 	}
-	else if(m_curve->m_contrlType == Curve::VIEW)
+	else if(m_curve->m_contrlType == Curve::MOVE)
 	{ 
-		QGLViewer::mousePressEvent(e);
+		float winX = e->pos().x();
+		float winY = e->pos().y();
+
+		gluUnProject(winX, winY, 0.0, m_ModelView, m_Projection, m_viewport, &unproj_p0[0], &unproj_p0[1], &unproj_p0[2]);
+		gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
+		m_picked =  m_curve->pickControlPoint(unproj_p0, unproj_p1);
 	}
 }
 
 void RenderWidget::mouseMoveEvent(QMouseEvent * e)
 {
+	if (m_curve->m_contrlType == Curve::MOVE && m_picked > -1)
+	{
+		float winX = e->pos().x();
+		float winY = e->pos().y();
+
+		gluUnProject(winX, winY, 0.0, m_ModelView, m_Projection, m_viewport, &unproj_p0[0], &unproj_p0[1], &unproj_p0[2]);
+		gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
+		m_curve->setControlPoint(unproj_p0, unproj_p1, m_picked);
+		updateRender();
+	}
 	//QGLViewer::mouseMoveEvent(e);
 }
 
 void RenderWidget::mouseReleaseEvent(QMouseEvent * e)
 {
+	if(m_curve->m_contrlType == Curve::MOVE)
+		m_picked = -1;
 	//QGLViewer::mouseReleaseEvent(e);
 }
 
@@ -98,13 +115,13 @@ void RenderWidget::draw()
 	m_vertBuf.bind();
 	glPointSize(5);
 	glDrawArrays(GL_POINTS, 0, m_curve->n_ctls);
-	
 
 	m_program->setUniformValue("col", QVector3D(0.0, 1.0, .0));
-	glLineWidth(2);
+	glLineWidth(1);
 	glDrawArrays(GL_LINE_STRIP, 0, m_curve->n_ctls);
 
 	m_program->setUniformValue("col", QVector3D(1.0, 1.0, 0.0));
+	glLineWidth(2);
 	glDrawArrays(GL_LINE_STRIP, m_curve->n_ctls, m_curve->n_points);
 
 	m_program->release();

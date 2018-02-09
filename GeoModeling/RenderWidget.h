@@ -51,6 +51,7 @@ private:
 
 
 	std::shared_ptr<Curve> m_curve;
+	int m_picked;
 };
 
 inline void RenderWidget::transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])
