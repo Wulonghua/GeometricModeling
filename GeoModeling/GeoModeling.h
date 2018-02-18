@@ -7,6 +7,7 @@
 #include "Curve.h"
 #include "ui_GeoModeling.h"
 #include "ui_Control.h"
+#include "mesh.h"
 
 class GeoModeling : public QMainWindow
 {
@@ -28,4 +29,5 @@ private:
 	Ui::ControlPanel ui_control;
 
 	std::shared_ptr<Curve> m_curve;
+	std::shared_ptr<Mesh> m_mesh;
 };

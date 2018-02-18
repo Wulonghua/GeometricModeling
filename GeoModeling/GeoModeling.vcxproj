@@ -83,6 +83,7 @@
     </ClCompile>
     <ClCompile Include="GeoModeling.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mesh.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +114,7 @@
     <ClInclude Include="Curve.h" />
     <ClInclude Include="GeneratedFiles\ui_Control.h" />
     <ClInclude Include="GeneratedFiles\ui_GeoModeling.h" />
+    <ClInclude Include="mesh.h" />
     <ClInclude Include="RenderWidget.h" />
   </ItemGroup>
   <ItemGroup>
