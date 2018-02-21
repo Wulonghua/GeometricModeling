@@ -2,12 +2,12 @@
 
 #include "QGLViewer\qglviewer.h"
 #include "Curve.h"
+#include "mesh.h"
 #include <iostream>
 #include <memory>
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QOpenGLFunctions>
-#include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
 
@@ -19,6 +19,7 @@ public:
 	~RenderWidget();
 
 	void setCurve(std::shared_ptr<Curve>& curve) { m_curve = curve; }
+	void setMesh(std::shared_ptr<Mesh>& mesh)    { m_mesh = mesh; }
 	void updateRender();
 
 protected:
@@ -46,11 +47,19 @@ private:
 	GLuint m_posAttr;
 
 	QMatrix4x4 m_mvpMat;
+	QMatrix4x4 m_mvMat;
+	QMatrix4x4 m_nMat;
+
+	QVector4D  m_light_pos;
+
 	QOpenGLBuffer m_vertBuf;
 	QOpenGLShaderProgram *m_program;
 
+	QOpenGLBuffer m_s_vertBuf;
+	QOpenGLShaderProgram *m_s_program;
 
 	std::shared_ptr<Curve> m_curve;
+	std::shared_ptr<Mesh>  m_mesh;
 	int m_picked;
 };
 

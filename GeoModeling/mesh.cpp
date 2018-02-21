@@ -17,6 +17,40 @@ void Mesh::AddFacet(datatype x1, datatype y1, datatype z1, datatype x2, datatype
 
 	AddFacet( geomfacet );
 }
+void Mesh::AddFacet(datatype x1, datatype y1, datatype z1, datatype x2, datatype y2, datatype z2, datatype x3, datatype y3, datatype z3, datatype x4, datatype y4, datatype z4)
+{
+	vector<GeomVert> geomfacet;
+	geomfacet.push_back(GeomVert(x1, y1, z1));
+	geomfacet.push_back(GeomVert(x2, y2, z2));
+	geomfacet.push_back(GeomVert(x3, y3, z3));
+	geomfacet.push_back(GeomVert(x4, y4, z4));
+
+	AddFacet(geomfacet);
+
+	//for rendering gldrawarrays
+	renderVerts.push_back(float(x1)); renderVerts.push_back(float(y1)); renderVerts.push_back(float(z1));
+	renderVerts.push_back(float(x2)); renderVerts.push_back(float(y2)); renderVerts.push_back(float(z2));
+	renderVerts.push_back(float(x3)); renderVerts.push_back(float(y3)); renderVerts.push_back(float(z3));
+	renderVerts.push_back(float(x1)); renderVerts.push_back(float(y1)); renderVerts.push_back(float(z1));
+	renderVerts.push_back(float(x3)); renderVerts.push_back(float(y3)); renderVerts.push_back(float(z3));
+	renderVerts.push_back(float(x4)); renderVerts.push_back(float(y4)); renderVerts.push_back(float(z4));
+
+	double a[3], b[3];
+	float c[3];
+	a[0] = x2 - x1; a[1] = y2 - y1; a[2] = z2 - z1;
+	b[0] = x3 - x1; b[1] = y3 - y1; b[2] = z3 - z1;
+	c[0] = float(a[1] * b[2] - a[2] * b[1]);
+	c[1] = float(a[2] * b[0] - a[0] * b[2]);
+	c[2] = float(a[0] * b[1] - a[1] * b[0]);
+	Eigen::Vector3f cv(c[0], c[1], c[2]);
+	cv.normalize();
+	for (int i = 0; i < 6; ++i)
+	{
+		renderNormals.push_back(cv[0]);
+		renderNormals.push_back(cv[1]);
+		renderNormals.push_back(cv[2]);
+	}
+}
 // ------------------------------------------------------------
 
 
@@ -123,12 +157,48 @@ void Mesh::Erase() {
 	mTopoVerts.clear();
 	mTopoEdges.clear();
 	mTopoFacets.clear();
+	renderVerts.clear();
+	renderNormals.clear();
 }
 // ------------------------------------------------------------
 
+void Mesh::RevolveYaxis(const Eigen::MatrixXd & curve_pts, int n_curve_pts)
+{
+	Eigen::MatrixXd s0 = curve_pts.leftCols(n_curve_pts);
+	Eigen::MatrixXd s1 = s0;
+	Eigen::MatrixXd s2 = s0;
+	double ang0 = PI2 / n_slice;
+	for (int i = 1; i < n_slice; ++i) 
+	{
+		double ang = ang0*i;
+		double cos_ang = cos(ang);
+		double sin_ang = sin(ang);
+		for (int j = 0; j < n_curve_pts; ++j) 
+		{
+			double r = s0(0, j);
+			s2(0, j) = r*cos_ang;
+			s2(2, j) = r*sin_ang;
+		}
 
-
-
+		//add facet
+		for (int k = 0; k < n_curve_pts-1; ++k) 
+		{
+			AddFacet(s1(0, k), s1(1, k), s1(2, k),
+					 s2(0, k), s2(1, k), s2(2, k),
+					 s2(0, k + 1), s2(1, k + 1), s2(2, k + 1),
+					 s1(0, k + 1), s1(1, k + 1), s1(2, k + 1));
+		}
+		s1 = s2;
+	}
+	s2 = s0;
+	for (int k = 0; k < n_curve_pts - 1; ++k)
+	{
+		AddFacet(s1(0, k), s1(1, k), s1(2, k),
+			s2(0, k), s2(1, k), s2(2, k),
+			s2(0, k + 1), s2(1, k + 1), s2(2, k + 1),
+			s1(0, k + 1), s1(1, k + 1), s1(2, k + 1));
+	}
+}
 
 // ------------------------------------------------------------
 // FindGeomVertex:  Searches for a geometric vertex in the mesh,
@@ -141,10 +211,6 @@ int Mesh::FindGeomVertex(GeomVert v) {
 	return -1;
 }
 // ------------------------------------------------------------
-
-
-
-
 
 // ------------------------------------------------------------
 // FindTopoEdge:  Searches for an edge in the mesh, returing 

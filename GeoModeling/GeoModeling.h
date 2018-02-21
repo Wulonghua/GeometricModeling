@@ -2,6 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include <QDockWidget>
+#include <QMessagebox>
 #include <memory>
 
 #include "Curve.h"
@@ -20,8 +21,9 @@ public slots:
 	void changeControlState();
 	void changeCurveType();
 	void changePrecision(int x);
+	void changeSlices(int x);
 	void clearState();
-
+	void doYRevolution();
 
 private:
 	void initConnections();

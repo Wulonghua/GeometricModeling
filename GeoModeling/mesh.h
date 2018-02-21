@@ -2,17 +2,16 @@
 #ifndef MESHCLASS
 #define	MESHCLASS
 
+#include "Eigen\Core"
 #include <stdio.h>
 #include <vector>
 #include <set>
+#include <cmath>
 
-
+#define PI2	6.2831853071796
 // Change to double for more precision
-typedef		double	datatype;
-
-
+typedef	double	datatype;
 using namespace std;
-
 
 // ------------------------------------------------------------
 // GeomVert: this class holds the geometric coordinates of a vertex
@@ -115,8 +114,6 @@ public:
 		return *sit;
 	}
 
-
-
 private:
 	vector<int> mIncVerts;	
 	vector<int> mIncEdges;
@@ -135,11 +132,13 @@ private:
 // ------------------------------------------------------------
 class Mesh {
 public:
-	Mesh()  { };
+	Mesh():n_slice(3)  { };
 	~Mesh() { Erase(); };
 
-	void      AddFacet(datatype x1, datatype y1, datatype z1, datatype x2, datatype y2, datatype z2, datatype x3, datatype y3, datatype z3);
-	void      AddFacet(vector<GeomVert> geomfacet);
+	void	AddFacet(datatype x1, datatype y1, datatype z1, datatype x2, datatype y2, datatype z2, datatype x3, datatype y3, datatype z3);
+	void	AddFacet(datatype x1, datatype y1, datatype z1, datatype x2, datatype y2, datatype z2,
+		datatype x3, datatype y3, datatype z3, datatype x4, datatype y4, datatype z4);
+	void	AddFacet(vector<GeomVert> geomfacet);
 	
 	int		  GetNumberVertices()		  { return mGeomVerts.size(); }
 	int		  GetNumberEdges()			  { return mTopoEdges.size(); }
@@ -150,6 +149,8 @@ public:
 	TopoFacet GetFacet(int facet_ind)     { return mTopoFacets[facet_ind]; }
 	
 	GeomVert  GetGeomVertex(int vert_ind) { return mGeomVerts[vert_ind]; }
+
+	void RevolveYaxis(const Eigen::MatrixXd& curve_pts,int n_curve_pts);
 
 
 
@@ -162,6 +163,14 @@ private:
 	vector<TopoVert>  mTopoVerts;
 	vector<TopoEdge>  mTopoEdges;
 	vector<TopoFacet> mTopoFacets;
+
+public:
+	void reset() { Erase(); }
+	// for rendering purpose
+	vector<float> renderVerts;
+	vector<float> renderNormals;
+	int n_slice;
+	
 };
 // ------------------------------------------------------------
 
