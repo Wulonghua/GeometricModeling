@@ -22,8 +22,10 @@ public slots:
 	void changeCurveType();
 	void changePrecision(int x);
 	void changeSlices(int x);
+	void changeZdepth(double x);
 	void clearState();
 	void doYRevolution();
+	void doZExtrusion();
 
 private:
 	void initConnections();

@@ -46,5 +46,7 @@ public:
 	Eigen::Matrix3Xd m_points; // rendering points
 	std::vector<double> m_bernPoly;
 
+	bool m_closed;
+
 };
 

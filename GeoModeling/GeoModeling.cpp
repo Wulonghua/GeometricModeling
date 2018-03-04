@@ -88,8 +88,7 @@ void GeoModeling::changePrecision(int x)
 	}
 	if (m_mesh->GetNumberFacets() > 0)
 	{
-		m_mesh->reset();
-		m_mesh->RevolveYaxis(m_curve->m_points, m_curve->n_points);
+		ui.glWidget->updateMesh();
 	}
 	ui.glWidget->updateRender();
 }
@@ -97,9 +96,20 @@ void GeoModeling::changePrecision(int x)
 void GeoModeling::changeSlices(int x)
 {
 	m_mesh->n_slice = x;
-	m_mesh->reset();
-	m_mesh->RevolveYaxis(m_curve->m_points, m_curve->n_points);
+	//m_mesh->reset();
+	//m_mesh->RevolveYaxis(m_curve->m_points, m_curve->n_points);
+	ui.glWidget->updateMesh();
 	ui.glWidget->updateRender();
+}
+
+void GeoModeling::changeZdepth(double x)
+{
+	m_mesh->m_depth = x;
+	if (m_mesh->m_buildType == Mesh::EXTRUSION)
+	{
+		m_mesh->ExtrusionZaxis(m_curve->m_points, m_curve->n_points);
+		ui.glWidget->updateRender();
+	}
 }
 
 void GeoModeling::clearState()
@@ -131,12 +141,29 @@ void GeoModeling::doYRevolution()
 		msgBox.exec();
 		return;
 	}
+	m_mesh->m_buildType = Mesh::REVOLUTION;
 	m_mesh->RevolveYaxis(m_curve->m_points, m_curve->n_points);
 	m_curve->m_contrlType = Curve::VIEW;
 	ui_control.radioButton_View->setChecked(true);
 	ui.glWidget->updateRender();
 	//std::cout << m_mesh->GetNumberVertices() << " " << m_mesh->GetNumberEdges() << " " << m_mesh->GetNumberFacets() << std::endl;
 
+}
+
+void GeoModeling::doZExtrusion()
+{
+	if (m_curve->n_points < 1)
+	{
+		QMessageBox msgBox;
+		msgBox.setText("There is no curve to generate extrusion surface.");
+		msgBox.exec();
+		return;
+	}
+	m_mesh->m_buildType = Mesh::EXTRUSION;
+	m_mesh->ExtrusionZaxis(m_curve->m_points, m_curve->n_points);
+	m_curve->m_contrlType = Curve::VIEW;
+	ui_control.radioButton_View->setChecked(true);
+	ui.glWidget->updateRender();
 }
 
 void GeoModeling::initConnections()
@@ -153,4 +180,6 @@ void GeoModeling::initConnections()
 	connect(ui_control.pushButton_clear, &QPushButton::clicked, this, &GeoModeling::clearState);
 	connect(ui_control.pushButton_revolution, &QPushButton::clicked, this, &GeoModeling::doYRevolution);
 	connect(ui_control.spinBox_slices, QOverload<int>::of(&QSpinBox::valueChanged), this, &GeoModeling::changeSlices);
+	connect(ui_control.pushButton_extrusion, &QPushButton::clicked, this, &GeoModeling::doZExtrusion);
+	connect(ui_control.doubleSpinBox_zdepth, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &GeoModeling::changeZdepth);
 }

@@ -23,6 +23,14 @@ RenderWidget::~RenderWidget()
 {
 }
 
+void RenderWidget::updateMesh()
+{
+	if (m_mesh->m_buildType == Mesh::REVOLUTION)
+		m_mesh->RevolveYaxis(m_curve->m_points, m_curve->n_points);
+	else if (m_mesh->m_buildType == Mesh::EXTRUSION)
+		m_mesh->ExtrusionZaxis(m_curve->m_points, m_curve->n_points);
+}
+
 void RenderWidget::updateRender()
 {
 	m_program->bind();
@@ -66,15 +74,24 @@ void RenderWidget::mousePressEvent(QMouseEvent * e)
 		gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
 
 		m_curve->addControlPoints(unproj_p0, unproj_p1);
+		updateMesh();
 		updateRender();
 	}
 	else if(m_curve->m_contrlType == Curve::MOVE)
 	{ 
 		float winX = e->pos().x();
 		float winY = e->pos().y();
+		
+		camera()->getModelViewMatrix(m_ModelView);
+		camera()->getProjectionMatrix(m_Projection);
+		camera()->getViewport(m_viewport);
 
 		gluUnProject(winX, winY, 0.0, m_ModelView, m_Projection, m_viewport, &unproj_p0[0], &unproj_p0[1], &unproj_p0[2]);
 		gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
+		//auto tmp = this->camera()->position();
+		//unproj_p0[0] = tmp.x;
+		//unproj_p0[1] = tmp.y;
+		//unproj_p0[2] = tmp.z;
 		m_picked =  m_curve->pickControlPoint(unproj_p0, unproj_p1);
 	}
 	else if (m_curve->m_contrlType == Curve::VIEW)
@@ -89,10 +106,11 @@ void RenderWidget::mouseMoveEvent(QMouseEvent * e)
 	{
 		float winX = e->pos().x();
 		float winY = e->pos().y();
-
 		gluUnProject(winX, winY, 0.0, m_ModelView, m_Projection, m_viewport, &unproj_p0[0], &unproj_p0[1], &unproj_p0[2]);
 		gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
 		m_curve->setControlPoint(unproj_p0, unproj_p1, m_picked);
+		//m_mesh->RevolveYaxis(m_curve->m_points, m_curve->n_points);
+		updateMesh();
 		updateRender();
 	}
 	else if (m_curve->m_contrlType == Curve::VIEW)
@@ -188,9 +206,20 @@ void RenderWidget::draw()
 		m_s_program->setAttributeBuffer(normalLocation, GL_FLOAT, m_mesh->renderVerts.size()*sizeof(float), 3);
 		m_s_program->enableAttributeArray(normalLocation);
 
+		//glEnable(GL_BLEND);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDrawArrays(GL_TRIANGLES, 0, m_mesh->renderVerts.size()/3);
 		m_s_program->release();
 	}
+
+	//if (m_curve->m_contrlType==Curve::VIEW || m_curve->m_contrlType==Curve::MOVE)
+	//{
+	//	glBegin(GL_LINES);
+	//	glColor3f(0, 0, 1.0);
+	//	glVertex3d(unproj_p0[0], unproj_p0[1], unproj_p0[2]);
+	//	glVertex3d(unproj_p1[0], unproj_p1[1], unproj_p1[2]);
+	//	glEnd();
+	//}
 }
 
 void RenderWidget::postDraw()

@@ -164,6 +164,7 @@ void Mesh::Erase() {
 
 void Mesh::RevolveYaxis(const Eigen::MatrixXd & curve_pts, int n_curve_pts)
 {
+	Erase();
 	Eigen::MatrixXd s0 = curve_pts.leftCols(n_curve_pts);
 	Eigen::MatrixXd s1 = s0;
 	Eigen::MatrixXd s2 = s0;
@@ -197,6 +198,32 @@ void Mesh::RevolveYaxis(const Eigen::MatrixXd & curve_pts, int n_curve_pts)
 			s2(0, k), s2(1, k), s2(2, k),
 			s2(0, k + 1), s2(1, k + 1), s2(2, k + 1),
 			s1(0, k + 1), s1(1, k + 1), s1(2, k + 1));
+	}
+}
+
+void Mesh::ExtrusionZaxis(const Eigen::MatrixXd & curve_pts, int n_curve_pts)
+{
+	Erase();
+	Eigen::MatrixXd s0 = curve_pts.leftCols(n_curve_pts);
+	Eigen::MatrixXd s1 = s0;
+	Eigen::MatrixXd s2 = s0;
+	double itv = m_depth / double (n_slice-1);
+	for (int i = 1; i < n_slice; ++i)
+	{
+		for (int j = 0; j < n_curve_pts; ++j)
+		{
+			s2(2, j) += itv*i;
+		}
+
+		//add facet
+		for (int k = 0; k < n_curve_pts - 1; ++k)
+		{
+			AddFacet(s1(0, k), s1(1, k), s1(2, k),
+				s2(0, k), s2(1, k), s2(2, k),
+				s2(0, k + 1), s2(1, k + 1), s2(2, k + 1),
+				s1(0, k + 1), s1(1, k + 1), s1(2, k + 1));
+		}
+		s1 = s2;
 	}
 }
 

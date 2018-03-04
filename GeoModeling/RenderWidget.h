@@ -21,6 +21,7 @@ public:
 	void setCurve(std::shared_ptr<Curve>& curve) { m_curve = curve; }
 	void setMesh(std::shared_ptr<Mesh>& mesh)    { m_mesh = mesh; }
 	void updateRender();
+	void updateMesh();
 
 protected:
 	virtual void draw();
@@ -37,6 +38,8 @@ private:
 		const GLdouble model[16], const GLdouble proj[16],
 		const GLint viewport[4],
 		GLdouble * winx, GLdouble * winy, GLdouble * winz);
+
+
 
 	double m_ModelView[16];
 	double m_Projection[16];

@@ -1,10 +1,11 @@
 #include "Curve.h"
 
-Curve::Curve():
-	n_ctls(0),n_points(0),n_precision(5),
+Curve::Curve() :
+	n_ctls(0), n_points(0), n_precision(5),
 	m_curveType(Bezier),
 	m_contrlType(ADD),
-	m_genType(SAMPLE)
+	m_genType(SAMPLE),
+	m_closed(false)
 {
 	m_ctls = Eigen::Matrix3Xd::Zero(3, 1000);      // assume that there will be no more than 1000 control points.
 	m_points = Eigen::Matrix3Xd::Zero(3, 100000);   // assume that there will be no more than 10000 rendering points.
@@ -34,9 +35,32 @@ void Curve::addControlPoints(double p0[3], double p1[3])
 	double t = p0[2] / (p0[2] - p1[2]);
 	double x = p0[0] + (p1[0] - p0[0])*t;
 	double y = p0[1] + (p1[1] - p0[1])*t;
-	m_ctls(0, n_ctls) = x;
-	m_ctls(1, n_ctls) = y;
-	n_ctls++;
+
+	if (!m_closed) // open curve
+	{
+		m_ctls(0, n_ctls) = x;
+		m_ctls(1, n_ctls) = y;
+		n_ctls++;
+	}
+	else // closed curve
+	{
+		if (n_ctls==0)
+		{
+			m_ctls(0, n_ctls) = x;
+			m_ctls(1, n_ctls) = y;
+			n_ctls++;
+			m_ctls(0, n_ctls) = x;
+			m_ctls(1, n_ctls) = y;
+			n_ctls++;
+		}
+		else
+		{
+			m_ctls(0, n_ctls - 1) = x;
+			m_ctls(1, n_ctls - 1) = y;
+			m_ctls.col(n_ctls) = m_ctls.col(0);
+			n_ctls++;
+		}
+	}
 
 	generateCurves();
 }

@@ -132,7 +132,7 @@ private:
 // ------------------------------------------------------------
 class Mesh {
 public:
-	Mesh():n_slice(3)  { };
+	Mesh():n_slice(3), m_depth(0.5),m_buildType(DONOTHING) { };
 	~Mesh() { Erase(); };
 
 	void	AddFacet(datatype x1, datatype y1, datatype z1, datatype x2, datatype y2, datatype z2, datatype x3, datatype y3, datatype z3);
@@ -151,13 +151,14 @@ public:
 	GeomVert  GetGeomVertex(int vert_ind) { return mGeomVerts[vert_ind]; }
 
 	void RevolveYaxis(const Eigen::MatrixXd& curve_pts,int n_curve_pts);
+	void ExtrusionZaxis(const Eigen::MatrixXd& curve_pts, int n_curve_pts);
 
 
 
 private:
 	int       FindGeomVertex(GeomVert v);
 	int		  FindTopoEdge(TopoEdge e);
-	void      Erase();
+	void Erase();
 
 	vector<GeomVert>  mGeomVerts;
 	vector<TopoVert>  mTopoVerts;
@@ -165,12 +166,15 @@ private:
 	vector<TopoFacet> mTopoFacets;
 
 public:
-	void reset() { Erase(); }
+	void reset() { Erase(); m_buildType = DONOTHING; }
+
+	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION };
 	// for rendering purpose
 	vector<float> renderVerts;
 	vector<float> renderNormals;
-	int n_slice;
-	
+	int		n_slice;
+	double	m_depth;
+	Build_Type m_buildType;
 };
 // ------------------------------------------------------------
 
