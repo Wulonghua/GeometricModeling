@@ -20,6 +20,8 @@ public:
 	void generateCurves();
 	std::vector<Eigen::Vector3d> Subdivide(std::vector<Eigen::Vector3d> points, int m, double u);
 
+	void changeCloseStatus(bool closed);
+
 private:
 	double getBinomialCoeff(int n, int i);    // compute C_n^i
 	void computeBersteins(int n);

@@ -37,6 +37,7 @@ void GeoModeling::changeControlState()
 
 void GeoModeling::changeCurveType()
 {
+	m_curve->changeCloseStatus(ui_control.checkBox_closed->isChecked());
 	if (ui_control.radioButton_Sampling->isChecked())
 	{
 		m_curve->m_genType = Curve::SAMPLE;
@@ -52,19 +53,29 @@ void GeoModeling::changeCurveType()
 
 	if (ui_control.radioButton_Bezier->isChecked())
 	{
+		if (m_curve->m_closed && m_curve->m_curveType != Curve::Bezier && m_curve->n_ctls>0)
+		{
+			m_curve->m_ctls.col(m_curve->n_ctls) = m_curve->m_ctls.col(0);
+			m_curve->n_ctls += 1;
+		}
 		m_curve->m_curveType = Curve::Bezier;
 		m_curve->generateBezierPoints();
 	}
 	else if (ui_control.radioButton_Quadric_Bspline->isChecked())
 	{
+		if (m_curve->m_closed && m_curve->m_curveType == Curve::Bezier && m_curve->n_ctls>0)
+			m_curve->n_ctls -= 1;
 		m_curve->m_curveType = Curve::Quadric_B_spline;
 		m_curve->generateQuadBspline();
 	}
 	else if (ui_control.radioButton_Cubic_Bspline->isChecked())
 	{
+		if (m_curve->m_closed && m_curve->m_curveType == Curve::Bezier && m_curve->n_ctls>0)
+			m_curve->n_ctls -= 1;
 		m_curve->m_curveType = Curve::Cubic_B_spline;
 		m_curve->generateCubicBspline();
 	}
+	ui.glWidget->updateMesh();
 	ui.glWidget->updateRender();
 }
 
@@ -176,6 +187,7 @@ void GeoModeling::initConnections()
 	connect(ui_control.radioButton_Cubic_Bspline, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
 	connect(ui_control.radioButton_Sampling, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
 	connect(ui_control.radioButton_Subdivision, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
+	connect(ui_control.checkBox_closed, &QCheckBox::stateChanged, this, &GeoModeling::changeCurveType);
 	connect(ui_control.spinBox_precision, QOverload<int>::of(&QSpinBox::valueChanged), this, &GeoModeling::changePrecision);
 	connect(ui_control.pushButton_clear, &QPushButton::clicked, this, &GeoModeling::clearState);
 	connect(ui_control.pushButton_revolution, &QPushButton::clicked, this, &GeoModeling::doYRevolution);

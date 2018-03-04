@@ -170,7 +170,10 @@ void RenderWidget::draw()
 
 	m_program->setUniformValue("col", QVector3D(0.0, 1.0, 0.0));
 	glLineWidth(1);
-	glDrawArrays(GL_LINE_STRIP, 0, m_curve->n_ctls);
+	if (m_curve->m_closed)
+		glDrawArrays(GL_LINE_LOOP, 0, m_curve->n_ctls);
+	else
+		glDrawArrays(GL_LINE_STRIP, 0, m_curve->n_ctls);
 
 	m_program->setUniformValue("col", QVector3D(1.0, 1.0, 0.0));
 	glLineWidth(2);

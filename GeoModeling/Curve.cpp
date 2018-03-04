@@ -36,13 +36,7 @@ void Curve::addControlPoints(double p0[3], double p1[3])
 	double x = p0[0] + (p1[0] - p0[0])*t;
 	double y = p0[1] + (p1[1] - p0[1])*t;
 
-	if (!m_closed) // open curve
-	{
-		m_ctls(0, n_ctls) = x;
-		m_ctls(1, n_ctls) = y;
-		n_ctls++;
-	}
-	else // closed curve
+	if(m_closed && m_curveType== Bezier) // closed bezier curve
 	{
 		if (n_ctls==0)
 		{
@@ -61,7 +55,12 @@ void Curve::addControlPoints(double p0[3], double p1[3])
 			n_ctls++;
 		}
 	}
-
+	else
+	{
+		m_ctls(0, n_ctls) = x;
+		m_ctls(1, n_ctls) = y;
+		n_ctls++;
+	}
 	generateCurves();
 }
 
@@ -214,33 +213,70 @@ void Curve::generateQuadBspline()
 	if (n_ctls < 3) return;
 	if (m_genType == SAMPLE)
 	{
-		int n = n_ctls - 2;
-		n_points = n*n_precision+1;
-		double itv = 1.0 / n_precision;
-		double u;
-		Eigen::Matrix3d M, P;
-		Eigen::Vector3d U;
-		M << 0.5, -1, 0.5,
-			-1, 1, 0.5,
-			0.5, 0, 0;
-		// use column order matrix/vector, so the matrix form is transposed to 
-		// that of the form in the course note.
-		for (int i = 0; i < n; ++i)
+		if (!m_closed)
 		{
-			P = m_ctls.block<3, 3>(0, i);
-			for (int j = 0; j < n_precision; ++j)
+			int n = n_ctls - 2;
+			n_points = n*n_precision + 1;
+			double itv = 1.0 / n_precision;
+			double u;
+			Eigen::Matrix3d M, P;
+			Eigen::Vector3d U;
+			M << 0.5, -1, 0.5,
+				-1, 1, 0.5,
+				0.5, 0, 0;
+			// use column order matrix/vector, so the matrix form is transposed to 
+			// that of the form in the course note.
+			for (int i = 0; i < n; ++i)
 			{
-				int k = i*n_precision + j;
-				u = /*double(i) + */itv*j;
-				U[0] = u*u; U[1] = u; U[2] = 1;
-				m_points.col(k) = P*M*U;
+				P = m_ctls.block<3, 3>(0, i);
+				for (int j = 0; j < n_precision; ++j)
+				{
+					int k = i*n_precision + j;
+					u = /*double(i) + */itv*j;
+					U[0] = u*u; U[1] = u; U[2] = 1;
+					m_points.col(k) = P*M*U;
+				}
+				if (i == n - 1)
+				{
+					U[0] = U[1] = U[2] = 1;
+					m_points.col(n_points - 1) = P*M*U;
+				}
+
 			}
-			if (i == n - 1)
+		}
+		else // closed
+		{
+			int n = n_ctls;
+			n_points = n*n_precision + 1;
+			double itv = 1.0 / n_precision;
+			double u;
+			Eigen::Matrix3d M, P;
+			Eigen::Vector3d U;
+			M << 0.5, -1, 0.5,
+				-1, 1, 0.5,
+				0.5, 0, 0;
+			// use column order matrix/vector, so the matrix form is transposed to 
+			// that of the form in the course note.
+			for (int i = 0; i < n; ++i)
 			{
-				U[0] = U[1] = U[2] = 1;
-				m_points.col(n_points - 1) = P*M*U;
+				//P = m_ctls.block<3, 3>(0, i);
+				P.col(0) = m_ctls.col(i % n);
+				P.col(1) = m_ctls.col((i + 1) % n);
+				P.col(2) = m_ctls.col((i + 2) % n);
+				for (int j = 0; j < n_precision; ++j)
+				{
+					int k = i*n_precision + j;
+					u = /*double(i) + */itv*j;
+					U[0] = u*u; U[1] = u; U[2] = 1;
+					m_points.col(k) = P*M*U;
+				}
+				if (i == n - 1)
+				{
+					//U[0] = U[1] = U[2] = 1;
+					m_points.col(n_points - 1) = m_points.col(0);
+				}
+
 			}
-				
 		}
 	}
 	else if (m_genType == SUBDIVISION)
@@ -265,12 +301,17 @@ void Curve::generateQuadBspline()
 void Curve::generateCubicBspline()
 {
 	if (n_ctls < 4) return;
-	int n = n_ctls - 3;
+	int n;
+	if (m_closed)
+		n = n_ctls;
+	else
+		n = n_ctls-3;
+	
 	n_points = n*n_precision+1;
 	double itv = 1.0 / n_precision;
 	double u;
 	Eigen::Matrix4d M;
-	Eigen::Matrix3Xd P;
+	Eigen::Matrix3Xd P = Eigen::Matrix3Xd::Zero(3,4);
 	Eigen::Vector4d U;
 	M << -1, 3, -3, 1,
 		3, -6, 0, 4,
@@ -281,7 +322,12 @@ void Curve::generateCubicBspline()
 	// that of the form in the course note.
 	for (int i = 0; i < n; ++i)
 	{
-		P = m_ctls.block<3, 4>(0, i);
+		//P = m_ctls.block<3, 4>(0, i);
+		P.col(0) = m_ctls.col(i%n_ctls);
+		P.col(1) = m_ctls.col((i+1)%n_ctls);
+		P.col(2) = m_ctls.col((i + 2) % n_ctls);
+		P.col(3) = m_ctls.col((i + 3) % n_ctls);
+
 		for (int j = 0; j < n_precision; ++j)
 		{
 			int k = i*n_precision + j;
@@ -291,8 +337,15 @@ void Curve::generateCubicBspline()
 		}
 		if (i == n - 1)
 		{
-			U[0] = U[1] = U[2] = U[3] = 1;
-			m_points.col(n_points - 1) = P*M*U;
+			if (m_closed)
+			{
+				m_points.col(n_points - 1) = m_points.col(0);
+			}
+			else
+			{
+				U[0] = U[1] = U[2] = U[3] = 1;
+				m_points.col(n_points - 1) = P*M*U;
+			}
 		}
 	}
 }
@@ -334,5 +387,24 @@ std::vector<Eigen::Vector3d> Curve::Subdivide(std::vector<Eigen::Vector3d> point
 		poly_half2 = Subdivide(pts2, m - 1, u);
 		return cancatenatePoints(poly_half1, poly_half2);
 	}
+}
+
+void Curve::changeCloseStatus(bool closed)
+{
+	
+	if (m_closed == closed) return;
+	m_closed = closed;
+	
+	if (m_curveType != Bezier || n_ctls <= 3) return; // Spline curve does not need add extra point that overlaps with the initial control point
+	if (m_closed) // from open to closed curve
+	{
+		m_ctls.col(n_ctls) = m_ctls.col(0);
+		++n_ctls;
+	}
+	else // from closed to open curve
+	{
+		--n_ctls;
+	}
+
 }
 
