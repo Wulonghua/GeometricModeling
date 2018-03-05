@@ -27,6 +27,7 @@ public slots:
 	void clearState();
 	void doYRevolution();
 	void doZExtrusion();
+	void doSweep();
 
 private:
 	void initConnections();

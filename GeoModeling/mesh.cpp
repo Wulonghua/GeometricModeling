@@ -227,6 +227,65 @@ void Mesh::ExtrusionZaxis(const Eigen::MatrixXd & curve_pts, int n_curve_pts)
 	}
 }
 
+void Mesh::Sweep(const Eigen::MatrixXd & pts, int n_pts, const Eigen::MatrixXd & traj, int n_traj)
+{
+	Erase();
+	Eigen::MatrixXd s0 = pts.leftCols(n_pts);
+	Eigen::MatrixXd s1, s2;
+	Eigen::Vector3d v1 = Eigen::Vector3d(0, 0, -1);
+	Eigen::Vector3d v2 = traj.col(0) - traj.col(1);
+	Eigen::Vector3d mean_p = pts.rowwise().mean();
+	double theta = std::atan2((v1.cross(v2))[0],v1.dot(v2));
+	double cos_theta = std::cos(theta);
+	double sin_theta = std::sin(theta);
+
+	Eigen::Matrix3d rot_mat;
+	rot_mat << 1, 0, 0,
+		0, cos_theta, -sin_theta,
+		0, sin_theta, cos_theta;
+	s1 = rot_mat * s0;
+	Eigen::Vector3d offset = traj.col(0) - mean_p;
+	for (int i = 0; i < n_pts; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			s1(j, i) += offset[j];
+		}
+	}
+
+	for (int i = 1; i < n_traj; ++i)
+	{
+		v2 = traj.col(i-1) - traj.col(i);
+		theta = std::atan2((v1.cross(v2))[0], v1.dot(v2));
+		cos_theta = std::cos(theta);
+		sin_theta = std::sin(theta);
+		rot_mat(1, 1) = rot_mat(2, 2) = cos_theta;
+		rot_mat(1, 2) = -sin_theta;
+		rot_mat(2, 1) = sin_theta;
+		s2 = rot_mat * s0;
+
+		offset = traj.col(i) - mean_p;
+
+		for (int ii = 0; ii < n_pts; ++ii)
+		{
+			for (int jj = 0; jj < 3; ++jj)
+			{
+				s2(jj, ii) += offset[jj];
+			}
+		}
+
+		//add facet
+		for (int k = 0; k < n_pts - 1; ++k)
+		{
+			AddFacet(s1(0, k), s1(1, k), s1(2, k),
+				s2(0, k), s2(1, k), s2(2, k),
+				s2(0, k + 1), s2(1, k + 1), s2(2, k + 1),
+				s1(0, k + 1), s1(1, k + 1), s1(2, k + 1));
+		}
+		s1 = s2;
+	}
+}
+
 // ------------------------------------------------------------
 // FindGeomVertex:  Searches for a geometric vertex in the mesh,
 //                  returning its indice if found, -1 otherwise

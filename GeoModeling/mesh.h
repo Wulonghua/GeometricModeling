@@ -3,6 +3,7 @@
 #define	MESHCLASS
 
 #include "Eigen\Core"
+#include "Eigen\geometry"
 #include <stdio.h>
 #include <vector>
 #include <set>
@@ -152,6 +153,7 @@ public:
 
 	void RevolveYaxis(const Eigen::MatrixXd& curve_pts,int n_curve_pts);
 	void ExtrusionZaxis(const Eigen::MatrixXd& curve_pts, int n_curve_pts);
+	void Sweep(const Eigen::MatrixXd& pts, int n_pts, const Eigen::MatrixXd& traj, int n_traj);
 
 
 
@@ -168,7 +170,7 @@ private:
 public:
 	void reset() { Erase(); m_buildType = DONOTHING; }
 
-	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION };
+	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION, SWEEP};
 	// for rendering purpose
 	vector<float> renderVerts;
 	vector<float> renderNormals;

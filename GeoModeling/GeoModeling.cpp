@@ -40,43 +40,48 @@ void GeoModeling::changeControlState()
 
 void GeoModeling::changeCurveType()
 {
-	m_curve->changeCloseStatus(ui_control.checkBox_closed->isChecked());
+	std::shared_ptr<Curve> curve;
+	if(ui.glWidget->m_plane==0)
+		curve = m_curve;
+	else if(ui.glWidget->m_plane == 1)
+		curve = m_traj;
+	curve->changeCloseStatus(ui_control.checkBox_closed->isChecked());
 	if (ui_control.radioButton_Sampling->isChecked())
 	{
-		m_curve->m_genType = Curve::SAMPLE;
+		curve->m_genType = Curve::SAMPLE;
 		ui_control.label_precision->setText(QString("Precisions: "));
-		m_curve->n_precision = ui_control.spinBox_precision->value();
+		curve->n_precision = ui_control.spinBox_precision->value();
 	}
 	else if (ui_control.radioButton_Subdivision->isChecked())
 	{
-		m_curve->m_genType = Curve::SUBDIVISION;
+		curve->m_genType = Curve::SUBDIVISION;
 		ui_control.label_precision->setText(QString("Iterations: "));
-		m_curve->n_precision = ui_control.spinBox_precision->value();
+		curve->n_precision = ui_control.spinBox_precision->value();
 	}
 
 	if (ui_control.radioButton_Bezier->isChecked())
 	{
-		if (m_curve->m_closed && m_curve->m_curveType != Curve::Bezier && m_curve->n_ctls>0)
+		if (curve->m_closed && curve->m_curveType != Curve::Bezier && curve->n_ctls>0)
 		{
-			m_curve->m_ctls.col(m_curve->n_ctls) = m_curve->m_ctls.col(0);
-			m_curve->n_ctls += 1;
+			curve->m_ctls.col(curve->n_ctls) = curve->m_ctls.col(0);
+			curve->n_ctls += 1;
 		}
-		m_curve->m_curveType = Curve::Bezier;
-		m_curve->generateBezierPoints();
+		curve->m_curveType = Curve::Bezier;
+		curve->generateBezierPoints();
 	}
 	else if (ui_control.radioButton_Quadric_Bspline->isChecked())
 	{
-		if (m_curve->m_closed && m_curve->m_curveType == Curve::Bezier && m_curve->n_ctls>0)
-			m_curve->n_ctls -= 1;
-		m_curve->m_curveType = Curve::Quadric_B_spline;
-		m_curve->generateQuadBspline();
+		if (curve->m_closed && curve->m_curveType == Curve::Bezier && curve->n_ctls>0)
+			curve->n_ctls -= 1;
+		curve->m_curveType = Curve::Quadric_B_spline;
+		curve->generateQuadBspline();
 	}
 	else if (ui_control.radioButton_Cubic_Bspline->isChecked())
 	{
-		if (m_curve->m_closed && m_curve->m_curveType == Curve::Bezier && m_curve->n_ctls>0)
-			m_curve->n_ctls -= 1;
-		m_curve->m_curveType = Curve::Cubic_B_spline;
-		m_curve->generateCubicBspline();
+		if (curve->m_closed && curve->m_curveType == Curve::Bezier && curve->n_ctls>0)
+			curve->n_ctls -= 1;
+		curve->m_curveType = Curve::Cubic_B_spline;
+		curve->generateCubicBspline();
 	}
 	ui.glWidget->updateMesh();
 	ui.glWidget->updateRender();
@@ -92,27 +97,66 @@ void GeoModeling::changePlane()
 	{
 		ui.glWidget->m_plane = 1; // yz-plane
 	}
-
 	ui.glWidget->setLookatPlane();
+
+	std::shared_ptr<Curve> curve;
+	if (ui.glWidget->m_plane == 0)
+		curve = m_curve;
+	else if (ui.glWidget->m_plane == 1)
+		curve = m_traj;
+
+	ui_control.checkBox_closed->setChecked(curve->m_closed);
+	if (curve->m_curveType == Curve::Bezier)
+	{
+		ui_control.radioButton_Quadric_Bspline->setChecked(false);
+		ui_control.radioButton_Cubic_Bspline->setChecked(false);
+		ui_control.radioButton_Bezier->setChecked(true);
+	}
+	else if (curve->m_curveType == Curve::Quadric_B_spline)
+	{
+		ui_control.radioButton_Bezier->setChecked(false);
+		ui_control.radioButton_Cubic_Bspline->setChecked(false);
+		ui_control.radioButton_Quadric_Bspline->setChecked(true);
+	}	
+	else if (curve->m_curveType == Curve::Cubic_B_spline)
+	{
+		ui_control.radioButton_Bezier->setChecked(false);
+		ui_control.radioButton_Quadric_Bspline->setChecked(false);
+		ui_control.radioButton_Cubic_Bspline->setChecked(true);
+	}
+		
+
+	ui_control.spinBox_precision->setValue(curve->n_precision);
+
+	if (curve->m_genType == Curve::SAMPLE)
+		ui_control.radioButton_Sampling->setChecked(true);
+	else if (curve->m_genType == Curve::SUBDIVISION)
+		ui_control.radioButton_Subdivision->setChecked(true);
 }
 
 void GeoModeling::changePrecision(int x)
 {
-	m_curve->n_precision = x;
+	std::shared_ptr<Curve> curve;
+	if (ui.glWidget->m_plane == 0)
+		curve = m_curve;
+	else if (ui.glWidget->m_plane == 1)
+		curve = m_traj;
+
+	curve->n_precision = x;
 	if (ui_control.radioButton_Bezier->isChecked())
 	{
-		m_curve->m_curveType = Curve::Bezier;
-		m_curve->generateBezierPoints();
+		curve->m_curveType = Curve::Bezier;
+		curve->generateBezierPoints();
 	}
 	else if (ui_control.radioButton_Quadric_Bspline->isChecked())
 	{
-		m_curve->m_curveType = Curve::Quadric_B_spline;
-		m_curve->generateQuadBspline();
+		curve->m_curveType = Curve::Quadric_B_spline;
+		curve->generateQuadBspline();
 	}
 	else if (ui_control.radioButton_Cubic_Bspline->isChecked())
 	{
-		m_curve->m_curveType = Curve::Cubic_B_spline;
-		m_curve->generateCubicBspline();
+		curve->m_curveType = Curve::Cubic_B_spline;
+		curve->generateCubicBspline();
 	}
 	if (m_mesh->GetNumberFacets() > 0)
 	{
@@ -143,6 +187,7 @@ void GeoModeling::changeZdepth(double x)
 void GeoModeling::clearState()
 {
 	m_curve->reset();
+	m_traj->reset();
 	m_mesh->reset();
 	ui.glWidget->updateRender();
 }
@@ -194,6 +239,30 @@ void GeoModeling::doZExtrusion()
 	ui.glWidget->updateRender();
 }
 
+void GeoModeling::doSweep()
+{
+	if (m_curve->n_points < 1)
+	{
+		QMessageBox msgBox;
+		msgBox.setText("There is no generator curve to generate sweeping surface.");
+		msgBox.exec();
+		return;
+	}
+	if (m_traj->n_points < 1)
+	{
+		QMessageBox msgBox;
+		msgBox.setText("There is no trajactory curve to generate sweeping surface.");
+		msgBox.exec();
+		return;
+	}
+
+	m_mesh->m_buildType = Mesh::SWEEP;
+	m_mesh->Sweep(m_curve->m_points, m_curve->n_points,m_traj->m_points,m_traj->n_points);
+	m_curve->m_contrlType = Curve::VIEW;
+	ui_control.radioButton_View->setChecked(true);
+	ui.glWidget->updateRender();
+}
+
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
@@ -210,6 +279,7 @@ void GeoModeling::initConnections()
 	connect(ui_control.spinBox_precision, QOverload<int>::of(&QSpinBox::valueChanged), this, &GeoModeling::changePrecision);
 	connect(ui_control.pushButton_clear, &QPushButton::clicked, this, &GeoModeling::clearState);
 	connect(ui_control.pushButton_revolution, &QPushButton::clicked, this, &GeoModeling::doYRevolution);
+	connect(ui_control.pushButton_sweep, &QPushButton::clicked, this, &GeoModeling::doSweep);
 	connect(ui_control.spinBox_slices, QOverload<int>::of(&QSpinBox::valueChanged), this, &GeoModeling::changeSlices);
 	connect(ui_control.pushButton_extrusion, &QPushButton::clicked, this, &GeoModeling::doZExtrusion);
 	connect(ui_control.doubleSpinBox_zdepth, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &GeoModeling::changeZdepth);
