@@ -38,11 +38,14 @@ void RenderWidget::setLookatPlane()
 	if (m_plane == 0) //xy-plane
 	{
 		camera()->setPosition(qglviewer::Vec(0, 0, 3));
+		camera()->setUpVector(qglviewer::Vec(0, 1, 0));
 	}
 	else if (m_plane == 1) //yz-plane
 	{
 		camera()->setPosition(qglviewer::Vec(3, 0, 0));
+		camera()->setUpVector(qglviewer::Vec(0, 0, 1));
 	}
+	
 	camera()->lookAt(sceneCenter());
 	update();
 }
@@ -246,6 +249,7 @@ void RenderWidget::init()
 	m_s_program->release();
 
 	camera()->setPosition(qglviewer::Vec(0, 0, 3));
+	camera()->setUpVector(qglviewer::Vec(0, 1, 0));
 	camera()->lookAt(sceneCenter());
 }
 
