@@ -18,10 +18,13 @@ public:
 	RenderWidget(QWidget *parent);
 	~RenderWidget();
 
-	void setCurve(std::shared_ptr<Curve>& curve) { m_curve = curve; }
+	void setCurve(std::shared_ptr<Curve>& curve, std::shared_ptr<Curve>& traj) { m_curve = curve; m_traj = traj; }
 	void setMesh(std::shared_ptr<Mesh>& mesh)    { m_mesh = mesh; }
+	void setLookatPlane();
 	void updateRender();
 	void updateMesh();
+	
+	int m_plane; // 0: xy-plane; 1: yz-plane;
 
 protected:
 	virtual void draw();
@@ -56,12 +59,14 @@ private:
 	QVector4D  m_light_pos;
 
 	QOpenGLBuffer m_vertBuf;
+	QOpenGLBuffer m_t_vertBuf;
 	QOpenGLShaderProgram *m_program;
 
 	QOpenGLBuffer m_s_vertBuf;
 	QOpenGLShaderProgram *m_s_program;
 
 	std::shared_ptr<Curve> m_curve;
+	std::shared_ptr<Curve> m_traj;
 	std::shared_ptr<Mesh>  m_mesh;
 	int m_picked;
 };

@@ -12,10 +12,10 @@ GeoModeling::GeoModeling(QWidget *parent)
 	ui.setupUi(this);
 
 	m_curve = std::make_shared<Curve>();
+	m_traj = std::make_shared<Curve>();
 	m_mesh = std::make_shared<Mesh>();
-	ui.glWidget->setCurve(m_curve);
+	ui.glWidget->setCurve(m_curve, m_traj);
 	ui.glWidget->setMesh(m_mesh);
-
 	initConnections();
 }
 
@@ -24,14 +24,17 @@ void GeoModeling::changeControlState()
 	if (ui_control.radioButton_addPoints->isChecked())
 	{
 		m_curve->m_contrlType = Curve::ADD;
+		m_traj->m_contrlType = Curve::ADD;
 	}
 	else if (ui_control.radioButton_movePoints->isChecked())
 	{
 		m_curve->m_contrlType = Curve::MOVE;
+		m_traj->m_contrlType = Curve::MOVE;
 	}
 	else if (ui_control.radioButton_View->isChecked())
 	{
 		m_curve->m_contrlType = Curve::VIEW;
+		m_traj->m_contrlType = Curve::VIEW;
 	}
 }
 
@@ -77,6 +80,20 @@ void GeoModeling::changeCurveType()
 	}
 	ui.glWidget->updateMesh();
 	ui.glWidget->updateRender();
+}
+
+void GeoModeling::changePlane()
+{
+	if (ui_control.radioButton_generator->isChecked())
+	{
+		ui.glWidget->m_plane = 0; // xy-plane
+	}
+	else if (ui_control.radioButton_trajactory->isChecked())
+	{
+		ui.glWidget->m_plane = 1; // yz-plane
+	}
+
+	ui.glWidget->setLookatPlane();
 }
 
 void GeoModeling::changePrecision(int x)
@@ -187,6 +204,8 @@ void GeoModeling::initConnections()
 	connect(ui_control.radioButton_Cubic_Bspline, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
 	connect(ui_control.radioButton_Sampling, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
 	connect(ui_control.radioButton_Subdivision, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
+	connect(ui_control.radioButton_generator, &QRadioButton::clicked, this, &GeoModeling::changePlane);
+	connect(ui_control.radioButton_trajactory, &QRadioButton::clicked, this, &GeoModeling::changePlane);
 	connect(ui_control.checkBox_closed, &QCheckBox::stateChanged, this, &GeoModeling::changeCurveType);
 	connect(ui_control.spinBox_precision, QOverload<int>::of(&QSpinBox::valueChanged), this, &GeoModeling::changePrecision);
 	connect(ui_control.pushButton_clear, &QPushButton::clicked, this, &GeoModeling::clearState);

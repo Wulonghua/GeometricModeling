@@ -20,6 +20,7 @@ public:
 public slots:
 	void changeControlState();
 	void changeCurveType();
+	void changePlane();
 	void changePrecision(int x);
 	void changeSlices(int x);
 	void changeZdepth(double x);
@@ -33,5 +34,7 @@ private:
 	Ui::ControlPanel ui_control;
 
 	std::shared_ptr<Curve> m_curve;
+	std::shared_ptr<Curve> m_traj;  // trajactory curve in yz plane
 	std::shared_ptr<Mesh> m_mesh;
+
 };

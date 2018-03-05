@@ -25,52 +25,101 @@ void Curve::reset()
 	m_points = Eigen::Matrix3Xd::Zero(3, 100000);
 }
 
-void Curve::addControlPoints(double p0[3], double p1[3])
+void Curve::addControlPoints(double p0[3], double p1[3], int plane)
 {
 	/************line equation*****************
 	x = x0 + (x1-x0)*t
 	y = y0 + (y1-y0)*t
 	z = z0 + (z1-z0)*t
 	******************************************/
-	double t = p0[2] / (p0[2] - p1[2]);
-	double x = p0[0] + (p1[0] - p0[0])*t;
-	double y = p0[1] + (p1[1] - p0[1])*t;
-
-	if(m_closed && m_curveType== Bezier) // closed bezier curve
+	if (plane ==0)
 	{
-		if (n_ctls==0)
+		double t = p0[2] / (p0[2] - p1[2]);
+		double x = p0[0] + (p1[0] - p0[0])*t;
+		double y = p0[1] + (p1[1] - p0[1])*t;
+
+		if (m_closed && m_curveType == Bezier) // closed bezier curve
 		{
-			m_ctls(0, n_ctls) = x;
-			m_ctls(1, n_ctls) = y;
-			n_ctls++;
-			m_ctls(0, n_ctls) = x;
-			m_ctls(1, n_ctls) = y;
-			n_ctls++;
+			if (n_ctls == 0)
+			{
+				m_ctls(0, n_ctls) = x;
+				m_ctls(1, n_ctls) = y;
+				n_ctls++;
+				m_ctls(0, n_ctls) = x;
+				m_ctls(1, n_ctls) = y;
+				n_ctls++;
+			}
+			else
+			{
+				m_ctls(0, n_ctls - 1) = x;
+				m_ctls(1, n_ctls - 1) = y;
+				m_ctls.col(n_ctls) = m_ctls.col(0);
+				n_ctls++;
+			}
 		}
 		else
 		{
-			m_ctls(0, n_ctls - 1) = x;
-			m_ctls(1, n_ctls - 1) = y;
-			m_ctls.col(n_ctls) = m_ctls.col(0);
+			m_ctls(0, n_ctls) = x;
+			m_ctls(1, n_ctls) = y;
 			n_ctls++;
 		}
 	}
 	else
 	{
-		m_ctls(0, n_ctls) = x;
-		m_ctls(1, n_ctls) = y;
-		n_ctls++;
+		double t = p0[0] / (p0[0] - p1[0]);
+		double z = p0[2] + (p1[2] - p0[2])*t;
+		double y = p0[1] + (p1[1] - p0[1])*t;
+		if (m_closed && m_curveType == Bezier) // closed bezier curve
+		{
+			if (n_ctls == 0)
+			{
+				m_ctls(2, n_ctls) = z;
+				m_ctls(1, n_ctls) = y;
+				n_ctls++;
+				m_ctls(2, n_ctls) = z;
+				m_ctls(1, n_ctls) = y;
+				n_ctls++;
+			}
+			else
+			{
+				m_ctls(2, n_ctls - 1) = z;
+				m_ctls(1, n_ctls - 1) = y;
+				m_ctls.col(n_ctls) = m_ctls.col(0);
+				n_ctls++;
+			}
+		}
+		else
+		{
+			m_ctls(2, n_ctls) = z;
+			m_ctls(1, n_ctls) = y;
+			n_ctls++;
+		}
 	}
 	generateCurves();
 }
 
-void Curve::setControlPoint(double p0[3], double p1[3], int id)
+void Curve::setControlPoint(double p0[3], double p1[3], int id, int plane)
 {
-	double t = p0[2] / (p0[2] - p1[2]);
-	double x = p0[0] + (p1[0] - p0[0])*t;
-	double y = p0[1] + (p1[1] - p0[1])*t;
-	m_ctls(0, id) = x;
-	m_ctls(1, id) = y;
+	if (plane==0)
+	{
+		double t = p0[2] / (p0[2] - p1[2]);
+		double x = p0[0] + (p1[0] - p0[0])*t;
+		double y = p0[1] + (p1[1] - p0[1])*t;
+		m_ctls(0, id) = x;
+		m_ctls(1, id) = y;
+	}
+	else
+	{
+		double t = p0[0] / (p0[0] - p1[0]);
+		double z = p0[2] + (p1[2] - p0[2])*t;
+		double y = p0[1] + (p1[1] - p0[1])*t;
+
+		m_ctls(2, id) = z;
+		m_ctls(1, id) = y;
+	}
+
+	if (m_closed && m_curveType == Bezier && id == 0)
+		m_ctls.col(n_ctls - 1) = m_ctls.col(0);
 
 	generateCurves();
 }
