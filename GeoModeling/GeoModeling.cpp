@@ -214,6 +214,14 @@ void GeoModeling::doYRevolution()
 		msgBox.exec();
 		return;
 	}
+
+	if (!m_curve->isValidYrevolve())
+	{
+		QMessageBox msgBox;
+		msgBox.setText("Warning: curve overlaps with Y axis");
+		msgBox.exec();
+		return;
+	}
 	m_mesh->m_buildType = Mesh::REVOLUTION;
 	m_mesh->RevolveYaxis(m_curve->m_points, m_curve->n_points);
 	m_curve->m_contrlType = Curve::VIEW;
@@ -257,10 +265,24 @@ void GeoModeling::doSweep()
 	}
 
 	m_mesh->m_buildType = Mesh::SWEEP;
-	m_mesh->Sweep(m_curve->m_points, m_curve->n_points,m_traj->m_points,m_traj->n_points);
+	m_mesh->Sweep(m_curve->m_points, m_curve->n_points,m_traj->m_points,m_traj->n_points, m_traj->m_closed);
 	m_curve->m_contrlType = Curve::VIEW;
+	m_traj->m_contrlType = Curve::VIEW;
 	ui_control.radioButton_View->setChecked(true);
 	ui.glWidget->updateRender();
+}
+
+void GeoModeling::doSaveMesh()
+{
+	if (m_mesh->GetNumberFacets() < 1)
+	{
+		QMessageBox msgBox;
+		msgBox.setText("There is no Mesh.");
+		msgBox.exec();
+		return;
+	}
+	m_mesh->saveMesh();
+	std::cout << "mesh saved to mesh.txt" << std::endl;
 }
 
 void GeoModeling::initConnections()
@@ -283,4 +305,5 @@ void GeoModeling::initConnections()
 	connect(ui_control.spinBox_slices, QOverload<int>::of(&QSpinBox::valueChanged), this, &GeoModeling::changeSlices);
 	connect(ui_control.pushButton_extrusion, &QPushButton::clicked, this, &GeoModeling::doZExtrusion);
 	connect(ui_control.doubleSpinBox_zdepth, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &GeoModeling::changeZdepth);
+	connect(ui_control.pushButton_saveMesh, &QPushButton::clicked, this, &GeoModeling::doSaveMesh);
 }

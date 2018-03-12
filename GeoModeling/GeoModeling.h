@@ -28,6 +28,7 @@ public slots:
 	void doYRevolution();
 	void doZExtrusion();
 	void doSweep();
+	void doSaveMesh();
 
 private:
 	void initConnections();

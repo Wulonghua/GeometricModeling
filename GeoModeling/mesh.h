@@ -8,6 +8,8 @@
 #include <vector>
 #include <set>
 #include <cmath>
+#include <QFile>
+#include <QTextStream>
 
 #define PI2	6.2831853071796
 // Change to double for more precision
@@ -153,7 +155,7 @@ public:
 
 	void RevolveYaxis(const Eigen::MatrixXd& curve_pts,int n_curve_pts);
 	void ExtrusionZaxis(const Eigen::MatrixXd& curve_pts, int n_curve_pts);
-	void Sweep(const Eigen::MatrixXd& pts, int n_pts, const Eigen::MatrixXd& traj, int n_traj);
+	void Sweep(const Eigen::MatrixXd& pts, int n_pts, const Eigen::MatrixXd& traj, int n_traj, bool closed);
 
 
 
@@ -169,7 +171,7 @@ private:
 
 public:
 	void reset() { Erase(); m_buildType = DONOTHING; }
-
+	void saveMesh();
 	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION, SWEEP};
 	// for rendering purpose
 	vector<float> renderVerts;

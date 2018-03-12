@@ -235,7 +235,7 @@
        <x>10</x>
        <y>10</y>
        <width>181</width>
-       <height>162</height>
+       <height>197</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -305,6 +305,13 @@
        <widget class="QPushButton" name="pushButton_sweep">
         <property name="text">
          <string>Sweep</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_saveMesh">
+        <property name="text">
+         <string>Save Mesh</string>
         </property>
        </widget>
       </item>

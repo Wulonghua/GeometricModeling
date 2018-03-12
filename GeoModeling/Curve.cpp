@@ -457,3 +457,17 @@ void Curve::changeCloseStatus(bool closed)
 
 }
 
+bool Curve::isValidYrevolve()
+{
+	bool s = (m_points(0, 0) > 0);
+	for (int i = 1; i < n_points; ++i)
+	{
+		bool st = (m_points(0, i) > 0);
+		if (st != s)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+

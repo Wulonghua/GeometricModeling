@@ -30,7 +30,7 @@ void RenderWidget::updateMesh()
 	else if (m_mesh->m_buildType == Mesh::EXTRUSION)
 		m_mesh->ExtrusionZaxis(m_curve->m_points, m_curve->n_points);
 	else if(m_mesh->m_buildType == Mesh::SWEEP)
-		m_mesh->Sweep(m_curve->m_points, m_curve->n_points, m_traj->m_points, m_traj->n_points);
+		m_mesh->Sweep(m_curve->m_points, m_curve->n_points, m_traj->m_points, m_traj->n_points, m_traj->m_closed);
 }
 
 void RenderWidget::setLookatPlane()
