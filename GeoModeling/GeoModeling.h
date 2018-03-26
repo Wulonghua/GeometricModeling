@@ -3,6 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QDockWidget>
 #include <QMessagebox>
+#include <QFileDialog>
 #include <memory>
 
 #include "Curve.h"
@@ -29,6 +30,7 @@ public slots:
 	void doZExtrusion();
 	void doSweep();
 	void doSaveMesh();
+	void doLoadMesh();
 
 private:
 	void initConnections();

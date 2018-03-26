@@ -285,6 +285,13 @@ void GeoModeling::doSaveMesh()
 	std::cout << "mesh saved to mesh.txt" << std::endl;
 }
 
+void GeoModeling::doLoadMesh()
+{
+	QString fileName = QFileDialog::getOpenFileName(this,
+		tr("Load Mesh"), "./", tr("Model File (*.off)"));
+	std::cout << "Mesh path:" << fileName.toStdString() << std::endl;
+}
+
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
@@ -306,4 +313,5 @@ void GeoModeling::initConnections()
 	connect(ui_control.pushButton_extrusion, &QPushButton::clicked, this, &GeoModeling::doZExtrusion);
 	connect(ui_control.doubleSpinBox_zdepth, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &GeoModeling::changeZdepth);
 	connect(ui_control.pushButton_saveMesh, &QPushButton::clicked, this, &GeoModeling::doSaveMesh);
+	connect(ui_control.pushButton_loadMesh, &QPushButton::clicked, this, &GeoModeling::doLoadMesh);
 }
