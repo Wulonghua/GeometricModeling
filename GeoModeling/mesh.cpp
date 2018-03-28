@@ -4,6 +4,50 @@
 
 #include "Mesh.h"
 
+void Mesh::LoadModel(QString filepath)
+{
+	QFile file(filepath);
+	std::cout << filepath.toStdString() << std::endl;
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		std::cerr << "Cannot load model file." << std::endl;
+		exit(1);
+	}
+	QTextStream fin(&file);
+	QString line = fin.readLine().simplified();
+	if (line != QString("OFF"))
+	{
+		std::cerr << "File does not start with OFF" << std::endl;
+		exit(1);
+	}
+	int n_verts, n_faces, n_tmp;
+	fin >> n_verts >> n_faces >> n_tmp;
+	std::cout << "#verts:" << n_verts << " #faces:" << n_faces << std::endl;
+	// add vertices.
+	for (int i = 0; i < n_verts; ++i)
+	{
+		datatype x, y, z;
+		fin >> x >> y >> z;
+		mGeomVerts.push_back(GeomVert(x, y, z));
+		TopoVert topovert;
+		mTopoVerts.push_back(topovert);
+	}
+	// add facets
+	for (int i = 0; i < n_faces; ++i)
+	{
+		TopoFacet topofacet;
+		int nv,v_id;
+		fin >> nv;
+		for (int j = 0; j < nv; ++j)
+		{
+			fin >> v_id;
+			topofacet.AddIncVertex(v_id);
+		}
+		AddFacet(topofacet);
+	}
+	prepareRender();
+}
+
 // ------------------------------------------------------------
 // AddFacet:  Adds a triangle to the mesh.
 //            This is one of 2 functions that can be used to build a mesh
@@ -143,11 +187,68 @@ void Mesh::AddFacet(vector<GeomVert> geomfacet) {
 		}
 	}
 }
+
+void Mesh::AddFacet(TopoFacet topofacet)
+{
+	int i;
+
+	// Add this new topo facet to mesh	
+	int facet_ind = mTopoFacets.size();
+	mTopoFacets.push_back(topofacet);
+
+	// Add edges of facet to mesh, again checking if they already exist
+	for (i = 0; i < topofacet.GetNumberVertices(); i++) {
+		int prev = (i == 0) ? topofacet.GetNumberVertices() - 1 : i - 1;
+
+		// Create edge
+		TopoEdge e;
+		e.SetVertex(0, topofacet.GetVertexInd(prev));
+		e.SetVertex(1, topofacet.GetVertexInd(i));
+
+		// Check if exists
+		int e_ind = FindTopoEdge(e);
+
+		if (e_ind == -1) {
+			// Didn't exist, add to mesh
+			e_ind = mTopoEdges.size();
+			mTopoVerts[e.GetVertex(0)].AddIncEdge(e_ind);
+			mTopoVerts[e.GetVertex(1)].AddIncEdge(e_ind);
+			mTopoEdges.push_back(e);
+		}
+
+		// Point edge to this facet
+		mTopoEdges[e_ind].AddIncFacet(facet_ind);
+
+		// Point facet to this edge
+		mTopoFacets[facet_ind].AddIncEdge(e_ind);
+	}
+	// --------------
+
+	// Compute other connectivity
+	for (i = 0; i < topofacet.GetNumberVertices(); i++) {
+		// Add vertex-facet topology
+		mTopoVerts[topofacet.GetVertexInd(i)].AddIncFacet(facet_ind);
+
+		// Add vertex-vertex (edge) topology
+		int prev = (i == 0) ? topofacet.GetNumberVertices() - 1 : i - 1;
+		int next = (i == topofacet.GetNumberVertices() - 1) ? 0 : i + 1;
+
+		mTopoVerts[topofacet.GetVertexInd(i)].AddIncVert(topofacet.GetVertexInd(prev));
+		mTopoVerts[topofacet.GetVertexInd(i)].AddIncVert(topofacet.GetVertexInd(next));
+	}
+
+	// Facet-facet adjacency...
+	for (i = 0; i < mTopoFacets[facet_ind].GetNumberEdges(); i++) {
+		TopoEdge edge = mTopoEdges[mTopoFacets[facet_ind].GetIncEdge(i)];
+		for (int j = 0; j < edge.GetNumberIncFacets(); j++) {
+			if (edge.GetIncFacet(j) != facet_ind) {
+				mTopoFacets[facet_ind].AddIncFacet(edge.GetIncFacet(j));
+				mTopoFacets[edge.GetIncFacet(j)].AddIncFacet(facet_ind);
+			}
+		}
+	}
+}
 // ------------------------------------------------------------
-
-
-
-
 
 // ------------------------------------------------------------
 // Erase:  Releases all memory used by object
@@ -159,6 +260,57 @@ void Mesh::Erase() {
 	mTopoFacets.clear();
 	renderVerts.clear();
 	renderNormals.clear();
+}
+void Mesh::prepareRender()
+{
+	renderVerts.clear();
+	renderNormals.clear();
+
+	for (int fi = 0; fi < mTopoFacets.size(); ++fi)
+	{
+		int n_v = mTopoFacets[fi].GetNumberVertices();
+		int vi[3];
+		vi[0] = mTopoFacets[fi].GetVertexInd(0);
+		// add positions
+		for (int i = 1; i < n_v - 1; ++i)
+		{
+			vi[1] = mTopoFacets[fi].GetVertexInd(i);
+			vi[2] = mTopoFacets[fi].GetVertexInd(i+1);
+			for (int j = 0; j < 3; ++j)
+			for (int k = 0; k < 3; ++k)
+			{
+				renderVerts.push_back(float(mGeomVerts[vi[j]].GetCo(k)));
+			}
+		}
+		// add normals
+		double a[3], b[3], x1,y1,z1,x2,y2,z2,x3,y3,z3;
+		float c[3];
+		vi[1] = mTopoFacets[fi].GetVertexInd(1);
+		vi[2] = mTopoFacets[fi].GetVertexInd(2);
+		x1 = mGeomVerts[vi[0]].GetCo(0);
+		y1 = mGeomVerts[vi[0]].GetCo(1);
+		z1 = mGeomVerts[vi[0]].GetCo(2);
+		x2 = mGeomVerts[vi[1]].GetCo(0);
+		y2 = mGeomVerts[vi[1]].GetCo(1);
+		z2 = mGeomVerts[vi[1]].GetCo(2);
+		x3 = mGeomVerts[vi[2]].GetCo(0);
+		y3 = mGeomVerts[vi[2]].GetCo(1);
+		z3 = mGeomVerts[vi[2]].GetCo(2);
+		a[0] = x2 - x1; a[1] = y2 - y1; a[2] = z2 - z1;
+		b[0] = x3 - x1; b[1] = y3 - y1; b[2] = z3 - z1;
+		c[0] = float(a[1] * b[2] - a[2] * b[1]);
+		c[1] = float(a[2] * b[0] - a[0] * b[2]);
+		c[2] = float(a[0] * b[1] - a[1] * b[0]);
+		Eigen::Vector3f cv(c[0], c[1], c[2]);
+		cv.normalize();
+		for (int i = 0; i < 3 * (n_v - 2); ++i)
+		{
+			renderNormals.push_back(cv[0]);
+			renderNormals.push_back(cv[1]);
+			renderNormals.push_back(cv[2]);
+		}
+	}
+
 }
 void Mesh::saveMesh()
 {

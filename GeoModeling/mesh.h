@@ -8,8 +8,10 @@
 #include <vector>
 #include <set>
 #include <cmath>
+#include <iostream>
 #include <QFile>
 #include <QTextStream>
+#include <QString>
 
 #define PI2	6.2831853071796
 // Change to double for more precision
@@ -142,6 +144,7 @@ public:
 	void	AddFacet(datatype x1, datatype y1, datatype z1, datatype x2, datatype y2, datatype z2,
 		datatype x3, datatype y3, datatype z3, datatype x4, datatype y4, datatype z4);
 	void	AddFacet(vector<GeomVert> geomfacet);
+	void	AddFacet(TopoFacet topofacet); // use for adding facet from *.off file, alreay got vertices posision
 	
 	int		  GetNumberVertices()		  { return mGeomVerts.size(); }
 	int		  GetNumberEdges()			  { return mTopoEdges.size(); }
@@ -160,9 +163,10 @@ public:
 
 
 private:
-	int       FindGeomVertex(GeomVert v);
-	int		  FindTopoEdge(TopoEdge e);
-	void Erase();
+	int		FindGeomVertex(GeomVert v);
+	int		FindTopoEdge(TopoEdge e);
+	void	Erase();
+	void	prepareRender();
 
 	vector<GeomVert>  mGeomVerts;
 	vector<TopoVert>  mTopoVerts;
@@ -170,9 +174,10 @@ private:
 	vector<TopoFacet> mTopoFacets;
 
 public:
+	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION, SWEEP };
 	void reset() { Erase(); m_buildType = DONOTHING; }
 	void saveMesh();
-	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION, SWEEP};
+	void LoadModel(QString filepath);
 	// for rendering purpose
 	vector<float> renderVerts;
 	vector<float> renderNormals;

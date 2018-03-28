@@ -282,14 +282,17 @@ void GeoModeling::doSaveMesh()
 		return;
 	}
 	m_mesh->saveMesh();
-	std::cout << "mesh saved to mesh.txt" << std::endl;
 }
 
 void GeoModeling::doLoadMesh()
 {
-	QString fileName = QFileDialog::getOpenFileName(this,
+	QString filename = QFileDialog::getOpenFileName(this,
 		tr("Load Mesh"), "./", tr("Model File (*.off)"));
-	std::cout << "Mesh path:" << fileName.toStdString() << std::endl;
+	m_mesh->LoadModel(filename);
+	ui.glWidget->updateRender();
+	m_curve->m_contrlType = Curve::VIEW;
+	m_traj->m_contrlType = Curve::VIEW;
+	ui_control.radioButton_View->setChecked(true);
 }
 
 void GeoModeling::initConnections()
