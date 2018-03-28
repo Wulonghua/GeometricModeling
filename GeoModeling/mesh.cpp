@@ -106,6 +106,7 @@ void Mesh::SubDooSabin(std::shared_ptr<Mesh> mesh)
 			topofacet.AddIncVertex(fvi_new[f1][d]);
 			topofacet.AddIncVertex(fvi_new[f1][c]);
 		}
+		mesh->AddFacet(topofacet);
 	}
 
 	//Todo: add V-face
