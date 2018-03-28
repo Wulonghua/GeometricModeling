@@ -8,6 +8,8 @@
 #include <vector>
 #include <set>
 #include <cmath>
+#include <memory>
+#include <algorithm>
 #include <iostream>
 #include <QFile>
 #include <QTextStream>
@@ -23,6 +25,7 @@ using namespace std;
 // ------------------------------------------------------------
 class GeomVert {
 public:
+	GeomVert() { mCo[0] = 0.0; mCo[1] = 0.0; mCo[2] = 0.0; }
 	GeomVert(datatype x, datatype y, datatype z) { mCo[0] = x; mCo[1] = y; mCo[2] = z; }
 
 	datatype      GetCo(int axis)                { return mCo[axis]; }
@@ -31,6 +34,31 @@ public:
 		return ( (mCo[0] == A.GetCo(0)) && (mCo[1] == A.GetCo(1)) && (mCo[2] == A.GetCo(2)) );		
 	}
  
+	GeomVert operator + (GeomVert &A) {
+		return GeomVert(A.GetCo(0) + mCo[0], A.GetCo(1) + mCo[1], A.GetCo(2) + mCo[2]);
+	}
+
+	GeomVert operator / (int n) {
+		datatype nf = datatype(n);
+		return GeomVert(mCo[0] / nf, mCo[1] / nf, mCo[2] / nf);
+	}
+
+	GeomVert operator * (datatype s) {
+		return GeomVert(mCo[0] * s, mCo[1] * s, mCo[2] * s);
+	}
+	
+	GeomVert& operator = (GeomVert& A) {
+		for (int i = 0; i < 3; ++i)
+			mCo[i] = A.GetCo(i);
+		return *this;
+	}
+
+	GeomVert& operator += (GeomVert& A) {
+		for (int i = 0; i < 3; ++i)
+			mCo[i] += A.GetCo(i);
+		return *this;
+	}
+
 private:
 	datatype	mCo[3];
 };
@@ -111,6 +139,11 @@ public:
 	void AddIncFacet(int f_ind)     { mIncFacets.insert( f_ind ); }
 	int  GetNumberVertices()        { return mIncVerts.size(); }
 	int  GetVertexInd(int vert_ind) { return mIncVerts[vert_ind]; }
+	int  GetVertexOrder(int id) {
+		int order = std::find(mIncVerts.begin(), mIncVerts.end(), id)-mIncVerts.begin();
+		return order >= mIncVerts.size() ? -1 : order;
+	}
+
 	int  GetNumberEdges()		    { return mIncEdges.size(); }
 	int  GetIncEdge(int edge_ind)   { return mIncEdges[edge_ind]; }
 	int  GetNumberFacets()		    { return mIncFacets.size(); }
@@ -145,10 +178,10 @@ public:
 		datatype x3, datatype y3, datatype z3, datatype x4, datatype y4, datatype z4);
 	void	AddFacet(vector<GeomVert> geomfacet);
 	void	AddFacet(TopoFacet topofacet); // use for adding facet from *.off file, alreay got vertices posision
-	
-	int		  GetNumberVertices()		  { return mGeomVerts.size(); }
-	int		  GetNumberEdges()			  { return mTopoEdges.size(); }
-	int       GetNumberFacets()           { return mTopoFacets.size(); }
+	void	AddNewVertex(GeomVert v) { mGeomVerts.push_back(v); mTopoVerts.push_back(TopoVert()); }
+	int		GetNumberVertices()		  { return mGeomVerts.size(); }
+	int		GetNumberEdges()			  { return mTopoEdges.size(); }
+	int		GetNumberFacets()           { return mTopoFacets.size(); }
 
 	TopoVert  GetVertex(int vert_ind)     { return mTopoVerts[vert_ind]; }
 	TopoEdge  GetEdge(int edge_ind)       { return mTopoEdges[edge_ind]; }
@@ -167,23 +200,31 @@ private:
 	int		FindTopoEdge(TopoEdge e);
 	void	Erase();
 	void	prepareRender();
+	void	computeFaceEdgeCenters();
 
 	vector<GeomVert>  mGeomVerts;
 	vector<TopoVert>  mTopoVerts;
 	vector<TopoEdge>  mTopoEdges;
 	vector<TopoFacet> mTopoFacets;
 
+	vector<vector<GeomVert>> mFEcenters;  // Edge centers in each face
+	vector<GeomVert>		 mFcenters;
+
 public:
 	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION, SWEEP };
 	void reset() { Erase(); m_buildType = DONOTHING; }
 	void saveMesh();
 	void LoadModel(QString filepath);
+	void SubDooSabin(std::shared_ptr<Mesh> mesh);
+
 	// for rendering purpose
 	vector<float> renderVerts;
 	vector<float> renderNormals;
 	int		n_slice;
 	double	m_depth;
 	Build_Type m_buildType;
+
+
 };
 // ------------------------------------------------------------
 

@@ -48,6 +48,69 @@ void Mesh::LoadModel(QString filepath)
 	prepareRender();
 }
 
+void Mesh::SubDooSabin(std::shared_ptr<Mesh> mesh)
+{
+	vector<vector<GeomVert>> v_new;
+	vector<vector<int>>		 fvi_new;
+	int id = 0;
+	int n_f = mTopoFacets.size();
+	v_new.resize(n_f);
+	fvi_new.resize(n_f);
+	// add F-face
+	for (int i = 0; i < n_f; ++i)
+	{
+		int n_fv = mTopoFacets[i].GetNumberVertices();
+		TopoFacet topofacet;
+		for (int j = 0; j < n_fv; ++j)
+		{
+			int k = (j == (n_fv - 1) ? 0 : j + 1);
+			GeomVert v = (mGeomVerts[mTopoFacets[i].GetVertexInd(j)] +
+				mFEcenters[i][j] +
+				mFEcenters[i][k] +
+				mFcenters[i])*0.25;
+			v_new[i].push_back(v);
+			topofacet.AddIncVertex(id);
+			fvi_new[i].push_back(id++);
+			mesh->AddNewVertex(v);
+			mesh->AddFacet(topofacet);
+		}
+	}
+
+	// add E-face
+	int n_e = mTopoEdges.size();
+	for (int i = 0; i < n_e; ++i)
+	{
+		TopoFacet topofacet;
+		if (mTopoEdges[i].GetNumberIncFacets() < 2) continue;
+		int v0 = mTopoEdges[i].GetVertex(0);
+		int v1 = mTopoEdges[i].GetVertex(1);
+		int f0 = mTopoEdges[i].GetIncFacet(0);
+		int f1 = mTopoEdges[i].GetIncFacet(1);
+		int a, b, c, d;
+		a = mTopoFacets[f0].GetVertexOrder(v0);
+		b = mTopoFacets[f0].GetVertexOrder(v1);
+		c = mTopoFacets[f1].GetVertexOrder(v0);
+		d = mTopoFacets[f1].GetVertexOrder(v1);
+		if (b - a == 1 || a - b == mTopoFacets[f0].GetNumberVertices() - 1)
+		{
+			topofacet.AddIncVertex(fvi_new[f0][b]);
+			topofacet.AddIncVertex(fvi_new[f0][a]);
+			topofacet.AddIncVertex(fvi_new[f1][c]);
+			topofacet.AddIncVertex(fvi_new[f1][d]);
+		}
+		else
+		{
+			topofacet.AddIncVertex(fvi_new[f0][a]);
+			topofacet.AddIncVertex(fvi_new[f0][b]);
+			topofacet.AddIncVertex(fvi_new[f1][d]);
+			topofacet.AddIncVertex(fvi_new[f1][c]);
+		}
+	}
+
+	//Todo: add V-face
+
+}
+
 // ------------------------------------------------------------
 // AddFacet:  Adds a triangle to the mesh.
 //            This is one of 2 functions that can be used to build a mesh
@@ -161,8 +224,6 @@ void Mesh::AddFacet(vector<GeomVert> geomfacet) {
 	}
 	// --------------
 		
-
-	
 	// Compute other connectivity
 	for (i = 0; i < topofacet.GetNumberVertices(); i++) {
 		// Add vertex-facet topology
@@ -312,6 +373,37 @@ void Mesh::prepareRender()
 	}
 
 }
+
+void Mesh::computeFaceEdgeCenters()
+{
+	vector<GeomVert> Ecenters;
+	Ecenters.resize(mTopoEdges.size());
+	for (int i = 0; i < mTopoEdges.size(); ++i)
+	{
+		int v0 = mTopoEdges[i].GetVertex(0);
+		int v1 = mTopoEdges[i].GetVertex(1);
+		Ecenters[i] = (mGeomVerts[v0] + mGeomVerts[v1]) / 2;
+	}
+	mFcenters.resize(mTopoFacets.size());
+	mFEcenters.resize(mTopoFacets.size());
+	for (int i = 0; i < mTopoFacets.size(); ++i)
+	{
+		GeomVert fcenter;
+		int nv = mTopoFacets[i].GetNumberVertices();
+		for (int j = 0; j < nv; ++j)
+			fcenter += mGeomVerts[mTopoFacets[i].GetVertexInd(j)];
+		mFcenters[i] = fcenter / nv;
+
+		int ne = mTopoFacets[i].GetNumberEdges();
+		mFEcenters[i].resize(ne);
+		for (int j = 0; j < ne; ++j)
+		{
+			int ei = mTopoFacets[i].GetIncFacet(j);
+			mFEcenters[i][j] = Ecenters[ei];
+		}
+	}
+}
+
 void Mesh::saveMesh()
 {
 	QFile file(QString("mesh.txt"));
