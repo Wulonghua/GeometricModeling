@@ -295,6 +295,16 @@ void GeoModeling::doLoadMesh()
 	ui_control.radioButton_View->setChecked(true);
 }
 
+void GeoModeling::doSubDooSabin()
+{
+	std::shared_ptr<Mesh> mesh=std::make_shared<Mesh>();
+	m_mesh->SubDooSabin(mesh);
+	m_mesh = mesh;
+	ui.glWidget->setMesh(m_mesh);
+	m_mesh->prepareRender();
+	ui.glWidget->updateRender();
+}
+
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
@@ -317,4 +327,5 @@ void GeoModeling::initConnections()
 	connect(ui_control.doubleSpinBox_zdepth, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &GeoModeling::changeZdepth);
 	connect(ui_control.pushButton_saveMesh, &QPushButton::clicked, this, &GeoModeling::doSaveMesh);
 	connect(ui_control.pushButton_loadMesh, &QPushButton::clicked, this, &GeoModeling::doLoadMesh);
+	connect(ui_control.pushButton_DooSabin, &QPushButton::clicked, this, &GeoModeling::doSubDooSabin);
 }

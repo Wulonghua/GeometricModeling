@@ -199,7 +199,6 @@ private:
 	int		FindGeomVertex(GeomVert v);
 	int		FindTopoEdge(TopoEdge e);
 	void	Erase();
-	void	prepareRender();
 	void	computeFaceEdgeCenters();
 
 	vector<GeomVert>  mGeomVerts;
@@ -213,6 +212,7 @@ private:
 public:
 	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION, SWEEP };
 	void reset() { Erase(); m_buildType = DONOTHING; }
+	void prepareRender();
 	void saveMesh();
 	void LoadModel(QString filepath);
 	void SubDooSabin(std::shared_ptr<Mesh> mesh);
@@ -223,6 +223,7 @@ public:
 	int		n_slice;
 	double	m_depth;
 	Build_Type m_buildType;
+
 
 
 };

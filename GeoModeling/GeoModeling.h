@@ -31,6 +31,7 @@ public slots:
 	void doSweep();
 	void doSaveMesh();
 	void doLoadMesh();
+	void doSubDooSabin();
 
 private:
 	void initConnections();

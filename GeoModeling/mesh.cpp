@@ -50,6 +50,7 @@ void Mesh::LoadModel(QString filepath)
 
 void Mesh::SubDooSabin(std::shared_ptr<Mesh> mesh)
 {
+	computeFaceEdgeCenters();
 	vector<vector<GeomVert>> v_new;
 	vector<vector<int>>		 fvi_new;
 	int id = 0;
@@ -72,8 +73,8 @@ void Mesh::SubDooSabin(std::shared_ptr<Mesh> mesh)
 			topofacet.AddIncVertex(id);
 			fvi_new[i].push_back(id++);
 			mesh->AddNewVertex(v);
-			mesh->AddFacet(topofacet);
 		}
+		mesh->AddFacet(topofacet);
 	}
 
 	// add E-face
@@ -398,7 +399,7 @@ void Mesh::computeFaceEdgeCenters()
 		mFEcenters[i].resize(ne);
 		for (int j = 0; j < ne; ++j)
 		{
-			int ei = mTopoFacets[i].GetIncFacet(j);
+			int ei = mTopoFacets[i].GetIncEdge(j);
 			mFEcenters[i][j] = Ecenters[ei];
 		}
 	}
