@@ -46,6 +46,10 @@ public:
 	GeomVert operator * (datatype s) {
 		return GeomVert(mCo[0] * s, mCo[1] * s, mCo[2] * s);
 	}
+
+	GeomVert operator * (int s) {
+		return GeomVert(mCo[0] * s, mCo[1] * s, mCo[2] * s);
+	}
 	
 	GeomVert& operator = (GeomVert& A) {
 		for (int i = 0; i < 3; ++i)
@@ -215,7 +219,9 @@ private:
 	vector<TopoFacet> mTopoFacets;
 
 	vector<vector<GeomVert>> mFEcenters;  // Edge centers in each face
+	vector<GeomVert>		 mEcenters;
 	vector<GeomVert>		 mFcenters;
+
 	vector<Eigen::Vector3f>	 mFaceNormals;
 	vector<Eigen::Vector3f>	 mVertNormals;
 
@@ -227,6 +233,7 @@ public:
 	void saveMesh();
 	void LoadModel(QString filepath);
 	void SubDooSabin(std::shared_ptr<Mesh> mesh);
+	void SubCatmullClark(std::shared_ptr<Mesh> mesh);
 
 	// for rendering purpose
 	vector<float> renderVerts;

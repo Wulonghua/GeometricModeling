@@ -165,6 +165,100 @@ void Mesh::SubDooSabin(std::shared_ptr<Mesh> mesh)
 		}
 		mesh->AddFacet(topofacet);
 	}
+
+	std::cout << "Finish Doo-Sabin Subdivision." << std::endl;
+}
+
+void Mesh::SubCatmullClark(std::shared_ptr<Mesh> mesh)
+{
+	computeFaceEdgeCenters();
+	vector<int>	e_pid;
+	vector<int> v_pid;
+	int n_f = mTopoFacets.size();
+	int n_e = mTopoEdges.size();
+	int n_v = mTopoVerts.size();
+	e_pid.resize(n_e);
+	v_pid.resize(n_v);
+
+	int pid = 0;
+	// add face point
+	for (int i = 0; i < n_f; ++i)
+	{
+		mesh->AddNewVertex(mFcenters[i]);
+		++pid;
+	}
+	// add edge point
+	for (int i = 0; i < n_e; ++i)
+	{
+		GeomVert v;
+		int v0 = mTopoEdges[i].GetVertex(0);
+		int v1 = mTopoEdges[i].GetVertex(1);
+		if (mTopoEdges[i].GetNumberIncFacets() < 2)
+		{
+			std::cerr << "Currently cannot handle boundary!!!" << std::endl;
+			exit(1);
+		}
+		int f0 = mTopoEdges[i].GetIncFacet(0);
+		int f1 = mTopoEdges[i].GetIncFacet(1);
+		v = (mGeomVerts[v0] + mGeomVerts[v1] + mFcenters[f0] + mFcenters[f1])*0.25;
+		mesh->AddNewVertex(v);
+		e_pid[i] = pid++;
+	}
+
+	// add vertex point
+	for (int i = 0; i < n_v; ++i)
+	{
+		GeomVert v;
+		int m = mTopoVerts[i].GetNumberIncFacets();
+		int n = mTopoVerts[i].GetNumberIncEdges();
+		if (m != n)
+		{
+			std::cerr << "Cannot handle this case." << std::endl;
+			exit(1);
+		}
+		
+		GeomVert Q;
+		int n_adjf = mTopoVerts[i].GetNumberIncFacets();
+		for (int j = 0; j < n_adjf; ++j)
+		{
+			int fi = mTopoVerts[i].GetIncFacet(j);
+			Q += mFcenters[fi];
+		}
+		Q = Q / n_adjf;
+
+		GeomVert R;
+		int n_adje = mTopoVerts[i].GetNumberIncEdges();
+		for (int j = 0; j < n_adje; ++j)
+		{
+			int ei = mTopoVerts[i].GetIncEdge(j);
+			R += mEcenters[ei];
+		}
+		R = R / n_adje;
+		
+		v = (Q + R * 2 + mGeomVerts[i] * (n - 3)) / n;
+		mesh->AddNewVertex(v);
+		v_pid[i] = pid++;
+	}
+
+	//add faces
+	for (int i = 0; i < n_f; ++i)
+	{
+		int n_fv = mTopoFacets[i].GetNumberVertices();
+		for (int j = 0; j < n_fv; ++j)
+		{
+			TopoFacet topofacet;
+			topofacet.AddIncVertex(i);
+			int k = (j == n_fv - 1 ? 0 : j + 1);
+			int e0 = mTopoFacets[i].GetIncEdge(j);
+			int e1 = mTopoFacets[i].GetIncEdge(k);
+			int v0 = mTopoFacets[i].GetVertexInd(j);
+			topofacet.AddIncVertex(e_pid[e0]);
+			topofacet.AddIncVertex(v_pid[v0]);
+			topofacet.AddIncVertex(e_pid[e1]);
+			mesh->AddFacet(topofacet);
+		}
+	}
+	std::cout << "Finish Catmull-Clark Subdivision." << std::endl;
 }
 
 // ------------------------------------------------------------
@@ -444,13 +538,12 @@ void Mesh::prepareRender()
 
 void Mesh::computeFaceEdgeCenters()
 {
-	vector<GeomVert> Ecenters;
-	Ecenters.resize(mTopoEdges.size());
+	mEcenters.resize(mTopoEdges.size());
 	for (int i = 0; i < mTopoEdges.size(); ++i)
 	{
 		int v0 = mTopoEdges[i].GetVertex(0);
 		int v1 = mTopoEdges[i].GetVertex(1);
-		Ecenters[i] = (mGeomVerts[v0] + mGeomVerts[v1]) / 2;
+		mEcenters[i] = (mGeomVerts[v0] + mGeomVerts[v1]) / 2;
 	}
 	mFcenters.resize(mTopoFacets.size());
 	mFEcenters.resize(mTopoFacets.size());
@@ -467,7 +560,7 @@ void Mesh::computeFaceEdgeCenters()
 		for (int j = 0; j < ne; ++j)
 		{
 			int ei = mTopoFacets[i].GetIncEdge(j);
-			mFEcenters[i][j] = Ecenters[ei];
+			mFEcenters[i][j] = mEcenters[ei];
 		}
 	}
 }

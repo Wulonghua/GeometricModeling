@@ -32,6 +32,7 @@ public slots:
 	void doSaveMesh();
 	void doLoadMesh();
 	void doSubDooSabin();
+	void doCatmullClark();
 
 private:
 	void initConnections();
