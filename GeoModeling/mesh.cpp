@@ -110,7 +110,61 @@ void Mesh::SubDooSabin(std::shared_ptr<Mesh> mesh)
 	}
 
 	//Todo: add V-face
+	int n_v = mTopoVerts.size();
+	for (int i = 0; i < n_v; ++i)
+	{
+		int m = mTopoVerts[i].GetNumberIncFacets();
+		int n = mTopoVerts[i].GetNumberIncEdges();
+		if (n != m) continue;
+		vector<int> visited(n, 0);  // whether the edge is visited or not
+		vector<int> adj_f;
+		int eid = mTopoVerts[i].GetIncEdge(0);
+		adj_f.push_back(mTopoEdges[eid].GetIncFacet(0));
+		adj_f.push_back(mTopoEdges[eid].GetIncFacet(1));
+		visited[0] = 1;
+		int n_face_visited = 2;
+		int ei = 1;
+		// get adjacent face id in order, needs to reverse if normal is flipped.
+		while (n_face_visited < m)
+		{
+			if(visited[ei]<1)
+			{
+				eid = mTopoVerts[i].GetIncEdge(ei);
+				int fid = mTopoEdges[eid].GetOtherIncFacet(adj_f.back());
+				if (fid > 0) 
+				{
+					++n_face_visited;
+					visited[ei] = 1;
+					adj_f.push_back(fid);
+				}
+				
+			}
+			++ei;
+			if (ei >= n && n_face_visited < m)
+			{
+				for (int j = 0; j < n; ++j)
+				{
+					if (visited[j] < 1)
+					{
+						ei = j;
+						break;
+					}
+				}
+			}
+		} // end while
 
+		if (!isAdjFacesRightOrder(adj_f, i))
+		{
+			std::reverse(adj_f.begin(), adj_f.end());
+		}
+
+		TopoFacet topofacet;
+		for (int j = 0; j < adj_f.size(); ++j)
+		{
+			topofacet.AddIncVertex(fvi_new[adj_f[j]][mTopoFacets[adj_f[j]].GetVertexOrder(i)]);
+		}
+		mesh->AddFacet(topofacet);
+	}
 }
 
 // ------------------------------------------------------------
@@ -328,7 +382,8 @@ void Mesh::prepareRender()
 {
 	renderVerts.clear();
 	renderNormals.clear();
-
+	mFaceNormals.resize(mTopoFacets.size());
+	mVertNormals.resize(mTopoVerts.size());
 	for (int fi = 0; fi < mTopoFacets.size(); ++fi)
 	{
 		int n_v = mTopoFacets[fi].GetNumberVertices();
@@ -372,8 +427,19 @@ void Mesh::prepareRender()
 			renderNormals.push_back(cv[1]);
 			renderNormals.push_back(cv[2]);
 		}
+		mFaceNormals[fi] = cv;
 	}
-
+	for (int i = 0; i < mTopoVerts.size(); ++i)
+	{
+		int n_f = mTopoVerts[i].GetNumberIncFacets();
+		Eigen::Vector3f nl = Eigen::Vector3f::Zero();
+		for (int j = 0; j < n_f; ++j)
+		{
+			int fi = mTopoVerts[i].GetIncFacet(j);
+			nl += mFaceNormals[fi];
+		}
+		mVertNormals[i] = nl.normalized();
+	}
 }
 
 void Mesh::computeFaceEdgeCenters()
@@ -404,6 +470,32 @@ void Mesh::computeFaceEdgeCenters()
 			mFEcenters[i][j] = Ecenters[ei];
 		}
 	}
+}
+
+bool Mesh::isAdjFacesRightOrder(const std::vector<int>& fs, int vi)
+{
+	if (fs.size() < 3)
+	{
+		std::cerr << "error in adjacent faces." << std::endl;
+		exit(1);
+	}
+	double a[3], b[3], x1, y1, z1, x2, y2, z2, x3, y3, z3;
+	Eigen::Vector3f c;
+	x1 = mFcenters[fs[0]].GetCo(0);
+	y1 = mFcenters[fs[0]].GetCo(1);
+	z1 = mFcenters[fs[0]].GetCo(2);
+	x2 = mFcenters[fs[1]].GetCo(0);
+	y2 = mFcenters[fs[1]].GetCo(1);
+	z2 = mFcenters[fs[1]].GetCo(2);
+	x3 = mFcenters[fs[2]].GetCo(0);
+	y3 = mFcenters[fs[2]].GetCo(1);
+	z3 = mFcenters[fs[2]].GetCo(2);
+	a[0] = x2 - x1; a[1] = y2 - y1; a[2] = z2 - z1;
+	b[0] = x3 - x1; b[1] = y3 - y1; b[2] = z3 - z1;
+	c[0] = float(a[1] * b[2] - a[2] * b[1]);
+	c[1] = float(a[2] * b[0] - a[0] * b[2]);
+	c[2] = float(a[0] * b[1] - a[1] * b[0]);
+	return (c.dot(mVertNormals[vi]) > 0);
 }
 
 void Mesh::saveMesh()

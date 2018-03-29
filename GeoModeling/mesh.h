@@ -115,6 +115,18 @@ public:
 	void AddIncFacet(int facet_ind) { mIncFacets.push_back(facet_ind); }
 	int  GetNumberIncFacets()       { return mIncFacets.size(); }
 	int  GetIncFacet(int facet_ind) { return mIncFacets[facet_ind]; }
+	int  GetOtherIncFacet(int fi) {
+		if (mIncFacets.size() < 2) return -1;
+		if (mIncFacets[0] == fi) {
+			return mIncFacets[1];
+		}
+		else if (mIncFacets[1] == fi) {
+			return mIncFacets[0];
+		}
+		else {
+			return -1;
+		}
+	}
 
 private:
 	int v1, v2;
@@ -159,11 +171,6 @@ private:
 };
 // ------------------------------------------------------------
 
-
-
-
-
-
 // ------------------------------------------------------------
 // Mesh:  This class uses all the preceding classes to represent a mesh with
 //        adjacency.connectivity information
@@ -200,6 +207,7 @@ private:
 	int		FindTopoEdge(TopoEdge e);
 	void	Erase();
 	void	computeFaceEdgeCenters();
+	bool    isAdjFacesRightOrder(const std::vector<int>& fs, int vi);
 
 	vector<GeomVert>  mGeomVerts;
 	vector<TopoVert>  mTopoVerts;
@@ -208,6 +216,9 @@ private:
 
 	vector<vector<GeomVert>> mFEcenters;  // Edge centers in each face
 	vector<GeomVert>		 mFcenters;
+	vector<Eigen::Vector3f>	 mFaceNormals;
+	vector<Eigen::Vector3f>	 mVertNormals;
+
 
 public:
 	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION, SWEEP };
