@@ -34,6 +34,8 @@ public slots:
 	void doSubDooSabin();
 	void doCatmullClark();
 	void doLoop();
+	void doGenCtlPoly();
+	void doGenBezierSurface();
 
 private:
 	void initConnections();

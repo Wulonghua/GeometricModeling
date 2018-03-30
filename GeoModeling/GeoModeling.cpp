@@ -325,6 +325,30 @@ void GeoModeling::doLoop()
 	ui.glWidget->updateRender();
 }
 
+void GeoModeling::doGenCtlPoly()
+{
+	int n_slices = ui_control.spinBox_slices->value();
+	m_curve->generateControlPolygon(n_slices);
+	ui.glWidget->updateRender();
+	m_curve->m_contrlType = Curve::VIEW;
+	m_traj->m_contrlType = Curve::VIEW;
+	ui_control.radioButton_View->setChecked(true);
+}
+
+void GeoModeling::doGenBezierSurface()
+{
+	if (m_curve->n_ctlsb < 1)
+	{
+		std::cerr << "Does not have control polygon" << std::endl;
+		return;
+	}
+	m_mesh->reset();
+	m_curve->generateBezierSurface(m_mesh);
+	m_mesh->prepareRender();
+	ui.glWidget->updateRender();
+	std::cout << "Done Generating Bezier Surface" << std::endl;
+}
+
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
@@ -350,4 +374,6 @@ void GeoModeling::initConnections()
 	connect(ui_control.pushButton_DooSabin, &QPushButton::clicked, this, &GeoModeling::doSubDooSabin);
 	connect(ui_control.pushButton_CatmullClark, &QPushButton::clicked, this, &GeoModeling::doCatmullClark);
 	connect(ui_control.pushButton_Loop, &QPushButton::clicked, this, &GeoModeling::doLoop);
+	connect(ui_control.pushButton_GenCtlPoly, &QPushButton::clicked, this, &GeoModeling::doGenCtlPoly);
+	connect(ui_control.pushButton_BezierSurface, &QPushButton::clicked, this, &GeoModeling::doGenBezierSurface);
 }

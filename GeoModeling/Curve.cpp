@@ -23,6 +23,8 @@ void Curve::reset()
 	n_points = 0;
 	m_ctls = Eigen::Matrix3Xd::Zero(3, 1000);
 	m_points = Eigen::Matrix3Xd::Zero(3, 100000);
+
+	n_ctlsb = 0;
 }
 
 void Curve::addControlPoints(double p0[3], double p1[3], int plane)
@@ -163,6 +165,17 @@ void Curve::computeBersteins(int n)
 		m_bernPoly[i] = getBinomialCoeff(n, i);
 }
 
+void Curve::computeBersteins(int n1, int n2)
+{
+	m_bernPoly.resize(n1 + 1, 0.0);
+	for (int i = 0; i < n1 + 1; ++i)
+		m_bernPoly[i] = getBinomialCoeff(n1, i);
+
+	m_bernPolyb.resize(n2 + 1, 0.0);
+	for (int i = 0; i < n2 + 1; ++i)
+		m_bernPolyb[i] = getBinomialCoeff(n2, i);
+}
+
 std::vector<Eigen::Vector3d> Curve::cancatenatePoints(std::vector<Eigen::Vector3d> poly1, std::vector<Eigen::Vector3d> poly2)
 {	
 	if (poly1.size() == 0 && poly2.size() != 0)
@@ -254,6 +267,44 @@ void Curve::generateBezierPoints()
 		std::vector<Eigen::Vector3d> pts = getControlPointsVector();
 		std::vector<Eigen::Vector3d> points = Subdivide(pts, n_precision, 0.5);
 		setRenderPoints(points);
+	}
+}
+
+void Curve::generateBezierSurface(std::shared_ptr<Mesh> mesh)
+{
+	int ni = (n_ctls - 1)*n_precision + 1;
+	int nj = (n_ctlsb - 1)*n_precision + 1;
+	double itvi = 1.0 / (ni-1);
+	double itvj = 1.0 / (nj-1);
+	computeBersteins(n_ctls - 1, n_ctlsb - 1);
+	// P(w,u) = sigma sigma P_{j,i} * B_{j,m}(w) * B_{i,n}(u)
+	for (int j = 0; j < nj; ++j)
+	for (int i = 0; i < ni; ++i)
+	{
+		double u = itvi * double(i);
+		double w = itvj * double(j);
+
+		Eigen::Vector3d p = Eigen::Vector3d::Zero();
+
+		for (int pj = 0; pj < n_ctlsb; ++pj)
+		for (int pi = 0; pi < n_ctls; ++pi)
+		{
+			p += m_ctls.col(pj*n_ctls + pi)*m_bernPoly[pi] * std::pow(u, pi)*std::pow(1 - u, n_ctls - 1 - pi)
+				*m_bernPolyb[pj] * std::pow(w, pj)*std::pow(1-w,n_ctlsb-1-pj);
+		}
+		GeomVert v(p[0],p[1],p[2]);
+		mesh->AddNewVertex(v);
+	}
+	
+	for (int j = 0; j < nj-1; ++j)
+	for (int i = 0; i < ni-1; ++i)
+	{
+		TopoFacet topofacet;
+		topofacet.AddIncVertex(j*ni + i);
+		topofacet.AddIncVertex(j*ni + i+1);
+		topofacet.AddIncVertex((j + 1)*ni+i+1);
+		topofacet.AddIncVertex((j + 1)*ni + i);
+		mesh->AddFacet(topofacet);
 	}
 }
 
@@ -469,5 +520,17 @@ bool Curve::isValidYrevolve()
 		}
 	}
 	return true;
+}
+
+void Curve::generateControlPolygon(int num_ctlsb)
+{
+	n_ctlsb = num_ctlsb;
+	for (int i = 1; i < n_ctlsb; ++i)
+	{
+		for (int j = 0; j < n_ctls; ++j)
+		{
+			m_ctls.col(i*n_ctls + j) = m_ctls.col(j)+Eigen::Vector3d(0,0,0.2)*i;
+		}
+	}
 }
 

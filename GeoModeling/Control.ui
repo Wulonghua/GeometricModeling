@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>258</width>
-    <height>616</height>
+    <height>799</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>310</y>
+     <y>340</y>
      <width>231</width>
      <height>241</height>
     </rect>
@@ -107,11 +107,11 @@
      <x>10</x>
      <y>10</y>
      <width>231</width>
-     <height>271</height>
+     <height>301</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_Curve">
     <attribute name="title">
@@ -261,7 +261,7 @@
        <x>10</x>
        <y>0</y>
        <width>211</width>
-       <height>201</height>
+       <height>267</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -333,6 +333,31 @@
          <string>Sweep</string>
         </property>
        </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_GenCtlPoly">
+        <property name="text">
+         <string>Generate Control Polygon</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QPushButton" name="pushButton_BezierSurface">
+          <property name="text">
+           <string>Bezier </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_CubicBsplineSurface">
+          <property name="text">
+           <string>Cubic B-spline</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

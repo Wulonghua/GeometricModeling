@@ -53,20 +53,31 @@ void RenderWidget::setLookatPlane()
 void RenderWidget::updateRender()
 {
 	m_program->bind();
-	m_vertBuf.bind();
-	m_vertBuf.allocate(sizeof(GLfloat) * 3 * (m_curve->n_ctls + m_curve->n_points));
-	Eigen::Matrix3Xf  ctls = m_curve->m_ctls.leftCols(m_curve->n_ctls).cast<float>();
-	Eigen::Matrix3Xf points = m_curve->m_points.leftCols(m_curve->n_points).cast<float>();
-	m_vertBuf.write(0, ctls.data(), 3 * m_curve->n_ctls * sizeof(float));
-	m_vertBuf.write(3 * m_curve->n_ctls * sizeof(float), points.data(), 3 * m_curve->n_points * sizeof(float));
-	
-	m_t_vertBuf.bind();
-	m_t_vertBuf.allocate(sizeof(GLfloat) * 3 * (m_traj->n_ctls + m_traj->n_points));
-	ctls = m_traj->m_ctls.leftCols(m_traj->n_ctls).cast<float>();
-	points = m_traj->m_points.leftCols(m_traj->n_points).cast<float>();
-	m_t_vertBuf.write(0, ctls.data(), 3 * m_traj->n_ctls * sizeof(float));
-	m_t_vertBuf.write(3 * m_traj->n_ctls * sizeof(float), points.data(), 3 * m_traj->n_points * sizeof(float));
-	
+	if (m_curve->n_ctlsb==0)
+	{
+		m_vertBuf.bind();
+		m_vertBuf.allocate(sizeof(GLfloat) * 3 * (m_curve->n_ctls + m_curve->n_points));
+		Eigen::Matrix3Xf  ctls = m_curve->m_ctls.leftCols(m_curve->n_ctls).cast<float>();
+		Eigen::Matrix3Xf points = m_curve->m_points.leftCols(m_curve->n_points).cast<float>();
+		m_vertBuf.write(0, ctls.data(), 3 * m_curve->n_ctls * sizeof(float));
+		m_vertBuf.write(3 * m_curve->n_ctls * sizeof(float), points.data(), 3 * m_curve->n_points * sizeof(float));
+
+		m_t_vertBuf.bind();
+		m_t_vertBuf.allocate(sizeof(GLfloat) * 3 * (m_traj->n_ctls + m_traj->n_points));
+		ctls = m_traj->m_ctls.leftCols(m_traj->n_ctls).cast<float>();
+		points = m_traj->m_points.leftCols(m_traj->n_points).cast<float>();
+		m_t_vertBuf.write(0, ctls.data(), 3 * m_traj->n_ctls * sizeof(float));
+		m_t_vertBuf.write(3 * m_traj->n_ctls * sizeof(float), points.data(), 3 * m_traj->n_points * sizeof(float));
+	}
+	else
+	{
+		m_vertBuf.bind();
+		int n = m_curve->n_ctls*m_curve->n_ctlsb;
+		m_vertBuf.allocate(sizeof(GLfloat) * 3 * n);
+		Eigen::Matrix3Xf  ctls = m_curve->m_ctls.leftCols(n).cast<float>();
+		m_vertBuf.write(0, ctls.data(), 3 * n * sizeof(float));
+	}
+
 	m_program->release();
 
 	if (m_mesh->renderVerts.size() > 0)
@@ -260,27 +271,33 @@ void RenderWidget::draw()
 	// draw curve with simple shading
 	m_program->bind();
 	m_program->setUniformValue("mvp", m_mvpMat);
-	/*********************generator curve***************************/
 	m_program->setUniformValue("col", QVector3D(1.0, 0.0, 0.0));
 	m_vertBuf.bind();
 	m_program->setAttributeBuffer(m_posAttr, GL_FLOAT, 0, 3);
 	m_program->enableAttributeArray(m_posAttr);
-	
-	glPointSize(5);
-	glDrawArrays(GL_POINTS, 0, m_curve->n_ctls);
+	if (m_curve->n_ctlsb == 0)
+	{
+		glPointSize(5);
+		glDrawArrays(GL_POINTS, 0, m_curve->n_ctls);
 
-	m_program->setUniformValue("col", QVector3D(0.0, 1.0, 0.0));
-	glLineWidth(1);
-	if (m_curve->m_closed)
-		glDrawArrays(GL_LINE_LOOP, 0, m_curve->n_ctls);
-	else
-		glDrawArrays(GL_LINE_STRIP, 0, m_curve->n_ctls);
+		m_program->setUniformValue("col", QVector3D(0.0, 1.0, 0.0));
+		glLineWidth(1);
+		if (m_curve->m_closed)
+			glDrawArrays(GL_LINE_LOOP, 0, m_curve->n_ctls);
+		else
+			glDrawArrays(GL_LINE_STRIP, 0, m_curve->n_ctls);
 
-	m_program->setUniformValue("col", QVector3D(1.0, 1.0, 0.0));
-	glLineWidth(2);
-	glDrawArrays(GL_LINE_STRIP, m_curve->n_ctls, m_curve->n_points);
+		m_program->setUniformValue("col", QVector3D(1.0, 1.0, 0.0));
+		glLineWidth(2);
+		glDrawArrays(GL_LINE_STRIP, m_curve->n_ctls, m_curve->n_points);
 
-	/***************************************************************/
+		/***************************************************************/
+	}
+	else // contol polygon
+	{
+		glPointSize(5);
+		glDrawArrays(GL_POINTS, 0, m_curve->n_ctls*m_curve->n_ctlsb);
+	}
 
 	/**********************trajactory cuve**************************/
 	m_program->setUniformValue("col", QVector3D(1.0, 0.0, 0.0));
@@ -335,7 +352,9 @@ void RenderWidget::draw()
 
 		//glEnable(GL_BLEND);
 		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDrawArrays(GL_TRIANGLES, 0, m_mesh->renderVerts.size()/3);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		m_s_program->release();
 	}
 

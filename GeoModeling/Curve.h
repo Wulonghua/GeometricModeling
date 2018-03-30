@@ -1,5 +1,6 @@
 #pragma once
 #include "Eigen\Core"
+#include "mesh.h"
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -15,17 +16,24 @@ public:
 	void setControlPoint(double p0[3], double p1[3], int id, int plane = 0);
 	int  pickControlPoint(double p0[3], double p1[3]);
 	void generateBezierPoints();
+	void generateBezierSurface(std::shared_ptr<Mesh> mesh);
 	void generateQuadBspline();
 	void generateCubicBspline();
 	void generateCurves();
+	
+
+
 	std::vector<Eigen::Vector3d> Subdivide(std::vector<Eigen::Vector3d> points, int m, double u);
 
 	void changeCloseStatus(bool closed);
 	bool isValidYrevolve();
 
+	void generateControlPolygon(int num_ctlsb);
+
 private:
 	double getBinomialCoeff(int n, int i);    // compute C_n^i
 	void computeBersteins(int n);
+	void computeBersteins(int n1, int n2);
 	std::vector<Eigen::Vector3d> cancatenatePoints(std::vector<Eigen::Vector3d> poly1, std::vector<Eigen::Vector3d> poly2);
 	std::vector<Eigen::Vector3d> OneSubdivide(std::vector<Eigen::Vector3d> points,
 		std::vector<Eigen::Vector3d>& poly1, std::vector<Eigen::Vector3d>& poly2, double u);
@@ -50,6 +58,9 @@ public:
 	std::vector<double> m_bernPoly;
 
 	bool m_closed;
+
+	int n_ctlsb;               // number of control points in other direction
+	std::vector<double> m_bernPolyb;
 
 };
 

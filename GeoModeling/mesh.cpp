@@ -21,14 +21,22 @@ void Mesh::LoadModel(QString filepath)
 		exit(1);
 	}
 	int n_verts, n_faces, n_tmp;
-	fin >> n_verts >> n_faces >> n_tmp;
+	//fin >> n_verts >> n_faces >> n_tmp;
+	//std::cout << "#verts:" << n_verts << " #faces:" << n_faces << std::endl;
+	line = fin.readLine().simplified();
+	QStringList segs = line.split(" ");
+	n_verts = segs[0].toInt();
+	n_faces = segs[1].toInt();
 	std::cout << "#verts:" << n_verts << " #faces:" << n_faces << std::endl;
 	// add vertices.
 	for (int i = 0; i < n_verts; ++i)
 	{
-		datatype x, y, z;
-		fin >> x >> y >> z;
-		mGeomVerts.push_back(GeomVert(x, y, z));
+		//datatype x, y, z;
+		//fin >> x >> y >> z;
+		//mGeomVerts.push_back(GeomVert(x, y, z));
+		QString line = fin.readLine().simplified();
+		QStringList segs = line.split(" ");
+		mGeomVerts.push_back(GeomVert(segs[0].toDouble(), segs[1].toDouble(), segs[2].toDouble()));
 		TopoVert topovert;
 		mTopoVerts.push_back(topovert);
 	}
@@ -36,13 +44,18 @@ void Mesh::LoadModel(QString filepath)
 	for (int i = 0; i < n_faces; ++i)
 	{
 		TopoFacet topofacet;
-		int nv,v_id;
-		fin >> nv;
+		//int nv,v_id;
+		//fin >> nv;
+		//for (int j = 0; j < nv; ++j)
+		//{
+		//	fin >> v_id;
+		//	topofacet.AddIncVertex(v_id);
+		//}
+		QString line = fin.readLine().simplified();
+		QStringList segs = line.split(" ");
+		int nv = segs[0].toInt();
 		for (int j = 0; j < nv; ++j)
-		{
-			fin >> v_id;
-			topofacet.AddIncVertex(v_id);
-		}
+			topofacet.AddIncVertex(segs[j+1].toInt());
 		AddFacet(topofacet);
 	}
 	prepareRender();
