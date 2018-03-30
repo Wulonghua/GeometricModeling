@@ -261,6 +261,76 @@ void Mesh::SubCatmullClark(std::shared_ptr<Mesh> mesh)
 	std::cout << "Finish Catmull-Clark Subdivision." << std::endl;
 }
 
+void Mesh::SubLoop(std::shared_ptr<Mesh> mesh)
+{
+	computeFaceEdgeCenters();
+	int pid = 0;
+	vector<int> e_pid;
+	vector<int> v_pid;
+	int n_e = mTopoEdges.size();
+	int n_v = mTopoVerts.size();
+	int n_f = mTopoFacets.size();
+	e_pid.resize(n_e);
+	v_pid.resize(n_v);
+	// add Edge point
+	for (int i = 0; i < n_e; ++i)
+	{
+		GeomVert v;
+		if (mTopoEdges[i].GetNumberIncFacets() < 2)
+		{
+			std::cerr << "Currently cannot handle boundary!!!" << std::endl;
+			exit(1);
+		}
+		int f0 = mTopoEdges[i].GetIncFacet(0);
+		int f1 = mTopoEdges[i].GetIncFacet(1);
+		v = mFcenters[f0] * 0.375 + mFcenters[f1] * 0.375 + mEcenters[i] * 0.25;
+		mesh->AddNewVertex(v);
+		e_pid[i] = pid++;
+	}
+	// add Vertex point
+	for (int i = 0; i < n_v; ++i)
+	{
+		GeomVert v;
+		int n = mTopoVerts[i].GetNumberIncVertices();
+		for (int j = 0; j < n; ++j)
+		{
+			v += mGeomVerts[mTopoVerts[i].GetIncVertex(j)];
+		}
+		v = v / n*0.375 + mGeomVerts[i] * 0.625;
+		mesh->AddNewVertex(v);
+		v_pid[i] = pid++;
+	}
+
+	// add faces
+	for (int i = 0; i < n_f; ++i)
+	{
+		if (mTopoFacets[i].GetNumberEdges() != 3)
+		{
+			std::cerr << "Loop subdivision only supports triangular surfaces" << std::endl;
+			exit(1);
+		}
+		for (int j = 0; j < 3; ++j)
+		{
+			TopoFacet topofacet;
+			int k = (j == 2 ? 0 : j + 1);
+			int v0 = e_pid[mTopoFacets[i].GetIncEdge(j)];
+			int v1 = v_pid[mTopoFacets[i].GetVertexInd(j)];
+			int v2 = e_pid[mTopoFacets[i].GetIncEdge(k)];
+			topofacet.AddIncVertex(v0);
+			topofacet.AddIncVertex(v1);
+			topofacet.AddIncVertex(v2);
+			mesh->AddFacet(topofacet);
+		}
+		TopoFacet tf;
+		tf.AddIncVertex(e_pid[mTopoFacets[i].GetIncEdge(0)]);
+		tf.AddIncVertex(e_pid[mTopoFacets[i].GetIncEdge(1)]);
+		tf.AddIncVertex(e_pid[mTopoFacets[i].GetIncEdge(2)]);
+		mesh->AddFacet(tf);
+	}
+
+	std::cout << "Finish Loop Subdivision." << std::endl;
+}
+
 // ------------------------------------------------------------
 // AddFacet:  Adds a triangle to the mesh.
 //            This is one of 2 functions that can be used to build a mesh

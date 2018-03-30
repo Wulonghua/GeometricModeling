@@ -234,6 +234,7 @@ public:
 	void LoadModel(QString filepath);
 	void SubDooSabin(std::shared_ptr<Mesh> mesh);
 	void SubCatmullClark(std::shared_ptr<Mesh> mesh);
+	void SubLoop(std::shared_ptr<Mesh> mesh);
 
 	// for rendering purpose
 	vector<float> renderVerts;

@@ -315,6 +315,16 @@ void GeoModeling::doCatmullClark()
 	ui.glWidget->updateRender();
 }
 
+void GeoModeling::doLoop()
+{
+	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+	m_mesh->SubLoop(mesh);
+	m_mesh = mesh;
+	ui.glWidget->setMesh(m_mesh);
+	m_mesh->prepareRender();
+	ui.glWidget->updateRender();
+}
+
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
@@ -339,4 +349,5 @@ void GeoModeling::initConnections()
 	connect(ui_control.pushButton_loadMesh, &QPushButton::clicked, this, &GeoModeling::doLoadMesh);
 	connect(ui_control.pushButton_DooSabin, &QPushButton::clicked, this, &GeoModeling::doSubDooSabin);
 	connect(ui_control.pushButton_CatmullClark, &QPushButton::clicked, this, &GeoModeling::doCatmullClark);
+	connect(ui_control.pushButton_Loop, &QPushButton::clicked, this, &GeoModeling::doLoop);
 }

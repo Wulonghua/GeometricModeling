@@ -27,8 +27,8 @@ void main(void)
 	vec3 vnormal = normalize(v_normal);
     vec3 light_vector = normalize(vec3(light_pos_in_eye - pos_in_eye));
 
-    float ndotl = max(dot(vnormal, light_vector),0.0);
-	
+    //float ndotl = max(dot(vnormal, light_vector),0.0);
+	float ndotl = dot(vnormal, light_vector);
 	vec4 ambient = ambient_coef * light_ambient;
 	vec4 diffuse = diffuse_coef * light_diffuse* ndotl;
 
@@ -38,7 +38,7 @@ void main(void)
 	float rdotv = max(dot(R, eye_vector), 0.0);
 
 	vec4 specular;
-	if (ndotl>0.0)
+	if (ndotl>0)
 		specular = specular_coef* light_specular*pow(rdotv, 10);
 	else{
 		//specular = vec4(0, 0, 0, 1);
