@@ -230,7 +230,7 @@ public:
 	enum Build_Type { DONOTHING, REVOLUTION, EXTRUSION, SWEEP };
 	void reset() { Erase(); m_buildType = DONOTHING; }
 	void prepareRender();
-	void saveMesh();
+	void saveMesh(QString filename);
 	void LoadModel(QString filepath);
 	void SubDooSabin(std::shared_ptr<Mesh> mesh);
 	void SubCatmullClark(std::shared_ptr<Mesh> mesh);

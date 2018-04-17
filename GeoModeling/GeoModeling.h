@@ -36,6 +36,7 @@ public slots:
 	void doLoop();
 	void doGenCtlPoly();
 	void doGenBezierSurface();
+	void doGenCubicSplineSurface();
 
 private:
 	void initConnections();

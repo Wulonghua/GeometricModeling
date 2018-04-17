@@ -308,6 +308,83 @@ void Curve::generateBezierSurface(std::shared_ptr<Mesh> mesh)
 	}
 }
 
+void Curve::generateCubicSplineSurface(std::shared_ptr<Mesh> mesh)
+{
+	int nci = n_ctls - 3;
+	int ncj = n_ctlsb - 3;
+	int ni = nci*n_precision;
+	int nj = ncj*n_precision;
+	double itv = 1.0 / n_precision;
+	double u, w;
+	Eigen::Matrix4d M;
+	Eigen::Matrix4d Px = Eigen::Matrix4d::Zero();
+	Eigen::Matrix4d Py = Eigen::Matrix4d::Zero();
+	Eigen::Matrix4d Pz = Eigen::Matrix4d::Zero();
+	Eigen::Vector4d UT, W;
+	M << -1, 3, -3, 1,
+		3, -6, 3, 0,
+		-3, 0, 3, 0,
+		1, 4, 1, 0;
+	M = M / 6.0;
+	vector<vector<Eigen::Vector3d>> vs;
+	vs.resize(nj);
+	for (int j = 0; j < nj; ++j)
+		vs[j].resize(ni);
+
+	for (int j = 0; j < ncj; ++j)
+	{
+		for (int i = 0; i < nci; ++i)
+		{
+			Eigen::Vector3d v;
+			for (int a = 0; a < 4; ++a)
+				for (int b = 0; b < 4; ++b)
+				{
+					Px(b, a) = m_ctls(0, (j + a)*nci + i + b);
+					Py(b, a) = m_ctls(1, (j + a)*nci + i + b);
+					Pz(b, a) = m_ctls(2, (j + a)*nci + i + b);
+				}
+			for (int pj = 0; pj < n_precision; ++pj)
+			{
+				w = itv * pj;
+				W[0] = w*w*w; W[1] = w*w; W[2] = w; W[3] = 1;
+				for (int pi = 0; pi < n_precision; ++pi)
+				{
+					u = itv*pi;
+					UT[0] = u*u*u; UT[1] = u*u; UT[2] = u; UT[3] = 1;
+					v(0) = UT.transpose() *M*Px*M.transpose()*W;
+					v(1) = UT.transpose() *M*Py*M.transpose()*W;
+					v(2) = UT.transpose() *M*Pz*M.transpose()*W;
+					int c, d;
+					c = j*n_precision + pj;
+					d = i*n_precision + pi;
+					vs[c][d] = v;
+				}
+			}
+		}
+	}
+
+	//add vertex;
+	for (int j = 0; j < nj; ++j)
+	{
+		for (int i = 0; i < ni; ++i)
+		{
+			GeomVert v(vs[j][i](0), vs[j][i](1), vs[j][i](2));
+			mesh->AddNewVertex(v);
+		}
+	}
+
+	for (int j = 0; j < nj - 1; ++j)
+		for (int i = 0; i < ni - 1; ++i)
+		{
+			TopoFacet topofacet;
+			topofacet.AddIncVertex(j*ni + i);
+			topofacet.AddIncVertex(j*ni + i + 1);
+			topofacet.AddIncVertex((j + 1)*ni + i + 1);
+			topofacet.AddIncVertex((j + 1)*ni + i);
+			mesh->AddFacet(topofacet);
+		}
+}
+
 void Curve::generateQuadBspline()
 {
 	if (n_ctls < 3) return;

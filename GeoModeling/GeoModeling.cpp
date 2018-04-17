@@ -281,7 +281,11 @@ void GeoModeling::doSaveMesh()
 		msgBox.exec();
 		return;
 	}
-	m_mesh->saveMesh();
+	QString filename = QFileDialog::getSaveFileName(this, tr("Save Mesh"),
+		"./untitled.off",
+		tr("Mesh (*.off)"));
+
+	m_mesh->saveMesh(filename);
 }
 
 void GeoModeling::doLoadMesh()
@@ -337,13 +341,27 @@ void GeoModeling::doGenCtlPoly()
 
 void GeoModeling::doGenBezierSurface()
 {
-	if (m_curve->n_ctlsb < 1)
+	if (m_curve->n_ctlsb < 3)
 	{
-		std::cerr << "Does not have control polygon" << std::endl;
+		std::cerr << "Does not have valid control polygon" << std::endl;
 		return;
 	}
 	m_mesh->reset();
 	m_curve->generateBezierSurface(m_mesh);
+	m_mesh->prepareRender();
+	ui.glWidget->updateRender();
+	std::cout << "Done Generating Bezier Surface" << std::endl;
+}
+
+void GeoModeling::doGenCubicSplineSurface()
+{
+	if (m_curve->n_ctlsb < 4)
+	{
+		std::cerr << "Does not have valid control polygon" << std::endl;
+		return;
+	}
+	m_mesh->reset();
+	m_curve->generateCubicSplineSurface(m_mesh);
 	m_mesh->prepareRender();
 	ui.glWidget->updateRender();
 	std::cout << "Done Generating Bezier Surface" << std::endl;
@@ -376,4 +394,5 @@ void GeoModeling::initConnections()
 	connect(ui_control.pushButton_Loop, &QPushButton::clicked, this, &GeoModeling::doLoop);
 	connect(ui_control.pushButton_GenCtlPoly, &QPushButton::clicked, this, &GeoModeling::doGenCtlPoly);
 	connect(ui_control.pushButton_BezierSurface, &QPushButton::clicked, this, &GeoModeling::doGenBezierSurface);
+	connect(ui_control.pushButton_CubicBsplineSurface, &QPushButton::clicked, this, &GeoModeling::doGenCubicSplineSurface);
 }

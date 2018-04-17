@@ -674,15 +674,16 @@ bool Mesh::isAdjFacesRightOrder(const std::vector<int>& fs, int vi)
 	return (c.dot(mVertNormals[vi]) > 0);
 }
 
-void Mesh::saveMesh()
+void Mesh::saveMesh(QString filename)
 {
-	QFile file(QString("mesh.txt"));
+	QFile file(filename);
 	if (file.open(QIODevice::ReadWrite))
 	{
 		QTextStream stream(&file);
 		int n_v = mGeomVerts.size();
 		int n_f = mTopoFacets.size();
-		stream << n_v << " " << n_f << endl;
+		stream << "OFF" << endl;
+		stream << n_v << " " << n_f << " 0"<< endl;
 		for (int i = 0; i < n_v; ++i)
 		{
 			stream << mGeomVerts[i].GetCo(0) << " "

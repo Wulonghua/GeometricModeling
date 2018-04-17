@@ -17,6 +17,7 @@ public:
 	int  pickControlPoint(double p0[3], double p1[3]);
 	void generateBezierPoints();
 	void generateBezierSurface(std::shared_ptr<Mesh> mesh);
+	void generateCubicSplineSurface(std::shared_ptr<Mesh> mesh);
 	void generateQuadBspline();
 	void generateCubicBspline();
 	void generateCurves();
