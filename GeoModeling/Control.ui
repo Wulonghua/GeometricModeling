@@ -111,7 +111,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_Curve">
     <attribute name="title">
@@ -250,6 +250,32 @@
       </item>
      </layout>
     </widget>
+    <widget class="QWidget" name="layoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>240</y>
+       <width>201</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QPushButton" name="pushButton_NNCrust">
+        <property name="text">
+         <string>NN-Crust</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_Crust">
+        <property name="text">
+         <string>Crust</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </widget>
    <widget class="QWidget" name="tab_Surface">
     <attribute name="title">
@@ -364,7 +390,7 @@
    </widget>
    <widget class="QWidget" name="tab">
     <attribute name="title">
-     <string>Surface 2</string>
+     <string>Subdivision</string>
     </attribute>
     <widget class="QPushButton" name="pushButton_DooSabin">
      <property name="geometry">

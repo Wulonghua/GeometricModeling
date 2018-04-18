@@ -1,6 +1,7 @@
 #pragma once
 #include "Eigen\Core"
 #include "mesh.h"
+#include <Fade_2D.h>
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -21,6 +22,10 @@ public:
 	void generateQuadBspline();
 	void generateCubicBspline();
 	void generateCurves();
+
+	void NNCrust();
+	void Crust();
+
 	
 
 

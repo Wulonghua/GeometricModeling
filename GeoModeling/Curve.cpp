@@ -543,6 +543,27 @@ void Curve::generateCurves()
 	}
 }
 
+void Curve::NNCrust()
+{
+	using namespace GEOM_FADE2D;
+	Fade_2D dt;
+	std::vector<Point2> v;
+	v.resize(n_ctls);
+	for (int i = 0; i < n_ctls; ++i)
+	{
+		v[i].set(m_ctls(0, i), m_ctls(1, i), i);
+	}
+	dt.insert(v);
+	std::vector<Triangle2*> Ts;
+	dt.getTrianglePointers(Ts);
+
+	std::cout << std::endl;
+}
+
+void Curve::Crust()
+{
+}
+
 std::vector<Eigen::Vector3d> Curve::Subdivide(std::vector<Eigen::Vector3d> points, int m, double u)
 {
 	std::vector<Eigen::Vector3d> poly1;

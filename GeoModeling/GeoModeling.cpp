@@ -16,6 +16,9 @@ GeoModeling::GeoModeling(QWidget *parent)
 	m_mesh = std::make_shared<Mesh>();
 	ui.glWidget->setCurve(m_curve, m_traj);
 	ui.glWidget->setMesh(m_mesh);
+	m_curve->reset();
+	m_traj->reset();
+	m_mesh->reset();
 	initConnections();
 }
 
@@ -367,6 +370,11 @@ void GeoModeling::doGenCubicSplineSurface()
 	std::cout << "Done Generating Bezier Surface" << std::endl;
 }
 
+void GeoModeling::doNNCrust()
+{
+	m_curve->NNCrust();
+}
+
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
@@ -395,4 +403,5 @@ void GeoModeling::initConnections()
 	connect(ui_control.pushButton_GenCtlPoly, &QPushButton::clicked, this, &GeoModeling::doGenCtlPoly);
 	connect(ui_control.pushButton_BezierSurface, &QPushButton::clicked, this, &GeoModeling::doGenBezierSurface);
 	connect(ui_control.pushButton_CubicBsplineSurface, &QPushButton::clicked, this, &GeoModeling::doGenCubicSplineSurface);
+	connect(ui_control.pushButton_NNCrust, &QPushButton::clicked, this, &GeoModeling::doNNCrust);
 }
