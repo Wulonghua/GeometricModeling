@@ -390,7 +390,7 @@ bool Mesh::NNCrust(std::vector<int>& graph)
 			picked_es.push_back(e);
 		}
 		q = mTopoEdges[e].GetVertex(0) + mTopoEdges[e].GetVertex(1) - p;
-		GeomVert qp = mGeomVerts[p] - mGeomVerts[q];
+		GeomVert pq = mGeomVerts[q] - mGeomVerts[p];
 
 		// add ps
 		int s;
@@ -401,8 +401,8 @@ bool Mesh::NNCrust(std::vector<int>& graph)
 			int ei = mTopoVerts[p].GetIncEdge(i);
 			if (ei == e) continue;
 			s =  mTopoEdges[ei].GetVertex(0) + mTopoEdges[ei].GetVertex(1) - p;
-			GeomVert qs = mGeomVerts[s] - mGeomVerts[q];
-			if (e_len[ei] < sl && qp.GetCo(0)*qs.GetCo(0) + qp.GetCo(1)*qs.GetCo(1) <= 0)
+			GeomVert ps = mGeomVerts[s] - mGeomVerts[p];
+			if (e_len[ei] < sl && pq.GetCo(0)*ps.GetCo(0) + pq.GetCo(1)*ps.GetCo(1) <= 0)
 			{
 				e2 = ei;
 				sl = e_len[ei];

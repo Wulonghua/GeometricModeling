@@ -373,6 +373,7 @@ void GeoModeling::doGenCubicSplineSurface()
 void GeoModeling::doNNCrust()
 {
 	m_curve->NNCrust();
+	ui.glWidget->updateRender();
 }
 
 void GeoModeling::initConnections()

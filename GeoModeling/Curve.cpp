@@ -593,7 +593,15 @@ bool Curve::NNCrust()
 					s.push(g[2 * v + 1]);
 			}
 		}
+		
+		Eigen::Matrix3Xd ordered_ctls = Eigen::Matrix3Xd::Zero(3, order_v.size());
+		for (int i = 0; i < order_v.size(); ++i)
+		{
+			ordered_ctls.col(i) = m_ctls.col(order_v[i]);
+		}
+		m_ctls.leftCols(order_v.size()) = ordered_ctls;
 		return true;
+		
 	}
 	else 
 	{
