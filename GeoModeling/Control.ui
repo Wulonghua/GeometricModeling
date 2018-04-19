@@ -31,7 +31,7 @@
       <x>20</x>
       <y>30</y>
       <width>97</width>
-      <height>76</height>
+      <height>88</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -42,6 +42,13 @@
        </property>
        <property name="checked">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioButton_delPoints">
+       <property name="text">
+        <string>Delete Points</string>
        </property>
       </widget>
      </item>

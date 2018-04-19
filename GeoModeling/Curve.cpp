@@ -656,7 +656,7 @@ int Curve::Crust()
 	}
 	
 	std::vector<int> g;
-	if (meshf.Crust(g,n_ctls))
+	if (meshf.Crust(g, n_ctls))
 	{
 		if (std::find(g.begin(), g.end(), -1) != g.end()) { return 0; }
 		int flag = 1;
