@@ -543,21 +543,64 @@ void Curve::generateCurves()
 	}
 }
 
-void Curve::NNCrust()
+bool Curve::NNCrust()
 {
 	using namespace GEOM_FADE2D;
 	Fade_2D dt;
 	std::vector<Point2> v;
 	v.resize(n_ctls);
+	Mesh mesh;
 	for (int i = 0; i < n_ctls; ++i)
 	{
 		v[i].set(m_ctls(0, i), m_ctls(1, i), i);
+		mesh.AddNewVertex(GeomVert(m_ctls(0, i), m_ctls(1, i)));
 	}
 	dt.insert(v);
 	std::vector<Triangle2*> Ts;
 	dt.getTrianglePointers(Ts);
+	
+	for (int i = 0; i < Ts.size(); ++i)
+	{
+		int id[3];
+		for(int j=0; j<3; ++j)
+			id[j] = Ts[i]->getCorner(j)->getCustomIndex();
+		TopoFacet topofacet;
+		for (int j = 0; j < 3; ++j)
+			topofacet.AddIncVertex(id[j]);
+		mesh.AddFacet(topofacet);
+	}
 
-	std::cout << std::endl;
+	std::vector<int> g;
+	if (mesh.NNCrust(g))
+	{
+		if (std::find(g.begin(), g.end(), -1) != g.end()) { return false; }
+
+		// reorder control points, do a DFS
+		std::vector<int> visited(n_ctls, 0);
+		std::vector<int> order_v;
+		std::stack<int> s;
+		s.push(0);
+		while (!s.empty())
+		{
+			int v = s.top();
+			s.pop();
+			if (visited[v]==0)
+			{
+				visited[v] = 1;
+				order_v.push_back(v);
+				s.push(g[2*v+0]);
+				if (g[2 * v + 1] > -1)
+					s.push(g[2 * v + 1]);
+			}
+		}
+		return true;
+	}
+	else 
+	{
+		return false;
+	}
+
+	
 }
 
 void Curve::Crust()

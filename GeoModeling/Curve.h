@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <stack>
 
 class Curve
 {
@@ -23,7 +24,7 @@ public:
 	void generateCubicBspline();
 	void generateCurves();
 
-	void NNCrust();
+	bool NNCrust();
 	void Crust();
 
 	

@@ -344,6 +344,96 @@ void Mesh::SubLoop(std::shared_ptr<Mesh> mesh)
 	std::cout << "Finish Loop Subdivision." << std::endl;
 }
 
+bool Mesh::NNCrust(std::vector<int>& graph)
+{
+	graph.resize(mTopoVerts.size() * 2, -1);
+	int n_e = mTopoEdges.size();
+	std::vector<int>		e_picked(n_e, 0);
+	std::vector<int>		picked_es;
+	std::vector<datatype>	e_len(n_e, 0.0);
+
+	//compute edge length
+	for (int e = 0; e < n_e; ++e)
+	{
+		int i = mTopoEdges[e].GetVertex(0);
+		int j = mTopoEdges[e].GetVertex(1);
+		GeomVert vec = mGeomVerts[i] - mGeomVerts[j];
+		e_len[e] = vec.Norm();
+	}
+
+	int n_p = mTopoVerts.size();
+	for (int p = 0; p < n_p; ++p)
+	{
+		// add pq
+		int ne = mTopoVerts[p].GetNumberIncEdges();
+		int e = -1;
+		int q = -1;
+		datatype sl = 100000;
+		for (int i = 0; i < ne; ++i)
+		{
+			int ei = mTopoVerts[p].GetIncEdge(i);
+			if (e_len[ei] < sl)
+			{
+				e = ei;
+				sl = e_len[ei];
+			}
+		}
+		if (e < 0)
+		{
+			std::cout << "something is wrong in NN-Crust" << std::endl;
+			exit(1);
+		}
+
+		if (e_picked[e] < 1)
+		{
+			e_picked[e] = 1;
+			picked_es.push_back(e);
+		}
+		q = mTopoEdges[e].GetVertex(0) + mTopoEdges[e].GetVertex(1) - p;
+		GeomVert qp = mGeomVerts[p] - mGeomVerts[q];
+
+		// add ps
+		int s;
+		int e2 = -1;
+		sl = 100000;
+		for (int i = 0; i < ne; ++i)
+		{
+			int ei = mTopoVerts[p].GetIncEdge(i);
+			if (ei == e) continue;
+			s =  mTopoEdges[ei].GetVertex(0) + mTopoEdges[ei].GetVertex(1) - p;
+			GeomVert qs = mGeomVerts[s] - mGeomVerts[q];
+			if (e_len[ei] < sl && qp.GetCo(0)*qs.GetCo(0) + qp.GetCo(1)*qs.GetCo(1) <= 0)
+			{
+				e2 = ei;
+				sl = e_len[ei];
+			}
+		}
+		if (e2 > -1 &&  e_picked[e2] < 1)
+		{
+			e_picked[e2] = 1;
+			picked_es.push_back(e2);
+		}
+	}
+
+	// construct graph
+	for (int i = 0; i < picked_es.size(); ++i)
+	{
+		int e = picked_es[i];
+		int v1 = mTopoEdges[e].GetVertex(0);
+		int v2 = mTopoEdges[e].GetVertex(1);
+
+		if (graph[2 * v1] < 0) graph[2 * v1] = v2;
+		else if (graph[2 * v1 + 1] < 0) graph[2 * v1 + 1] = v2;
+		else { return false; }
+
+		if (graph[2 * v2] < 0) graph[2 * v2] = v1;
+		else if (graph[2 * v2 + 1] < 0) graph[2 * v2 + 1] = v1;
+		else { return false; }
+	}
+
+	return true;
+}
+
 // ------------------------------------------------------------
 // AddFacet:  Adds a triangle to the mesh.
 //            This is one of 2 functions that can be used to build a mesh

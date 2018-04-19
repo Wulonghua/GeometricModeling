@@ -27,8 +27,10 @@ class GeomVert {
 public:
 	GeomVert() { mCo[0] = 0.0; mCo[1] = 0.0; mCo[2] = 0.0; }
 	GeomVert(datatype x, datatype y, datatype z) { mCo[0] = x; mCo[1] = y; mCo[2] = z; }
+	GeomVert(datatype x, datatype y) { mCo[0] = x; mCo[1] = y; mCo[2] = 0.0; }
 
 	datatype      GetCo(int axis)                { return mCo[axis]; }
+	datatype	  Norm() { return std::sqrt(mCo[0]*mCo[0]+mCo[1]*mCo[1]+mCo[2]*mCo[2]); }
 
 	bool operator == (GeomVert &A)               { 
 		return ( (mCo[0] == A.GetCo(0)) && (mCo[1] == A.GetCo(1)) && (mCo[2] == A.GetCo(2)) );		
@@ -36,6 +38,10 @@ public:
  
 	GeomVert operator + (GeomVert &A) {
 		return GeomVert(A.GetCo(0) + mCo[0], A.GetCo(1) + mCo[1], A.GetCo(2) + mCo[2]);
+	}
+
+	GeomVert operator - (GeomVert &A) {
+		return GeomVert(-A.GetCo(0) + mCo[0], -A.GetCo(1) + mCo[1], -A.GetCo(2) + mCo[2]);
 	}
 
 	GeomVert operator / (int n) {
@@ -235,6 +241,8 @@ public:
 	void SubDooSabin(std::shared_ptr<Mesh> mesh);
 	void SubCatmullClark(std::shared_ptr<Mesh> mesh);
 	void SubLoop(std::shared_ptr<Mesh> mesh);
+
+	bool NNCrust(std::vector<int>& graph);
 
 	// for rendering purpose
 	vector<float> renderVerts;
