@@ -434,6 +434,41 @@ bool Mesh::NNCrust(std::vector<int>& graph)
 	return true;
 }
 
+bool Mesh::Crust(std::vector<int>& graph, int n_p)
+{
+	graph.resize(n_p * 2, -1);
+	int n_e = mTopoEdges.size();
+	std::vector<int>		e_picked(n_e, 0);
+	std::vector<int>		picked_es;
+
+	for (int e = 0; e < n_e; ++e)
+	{
+		int p = mTopoEdges[e].GetVertex(0);
+		int q = mTopoEdges[e].GetVertex(1);
+
+		if (p < n_p && q < n_p)
+			picked_es.push_back(e);
+	}
+
+	// construct graph
+	for (int i = 0; i < picked_es.size(); ++i)
+	{
+		int e = picked_es[i];
+		int v1 = mTopoEdges[e].GetVertex(0);
+		int v2 = mTopoEdges[e].GetVertex(1);
+
+		if (graph[2 * v1] < 0) graph[2 * v1] = v2;
+		else if (graph[2 * v1 + 1] < 0) graph[2 * v1 + 1] = v2;
+		else { return false; }
+
+		if (graph[2 * v2] < 0) graph[2 * v2] = v1;
+		else if (graph[2 * v2 + 1] < 0) graph[2 * v2 + 1] = v1;
+		else { return false; }
+	}
+
+	return true;
+}
+
 // ------------------------------------------------------------
 // AddFacet:  Adds a triangle to the mesh.
 //            This is one of 2 functions that can be used to build a mesh

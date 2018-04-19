@@ -611,8 +611,88 @@ bool Curve::NNCrust()
 	
 }
 
-void Curve::Crust()
+int Curve::Crust()
 {
+	using namespace GEOM_FADE2D;
+	Fade_2D dt;
+	std::vector<Point2> v;
+	v.resize(n_ctls);
+	Mesh mesh;
+	for (int i = 0; i < n_ctls; ++i)
+	{
+		v[i].set(m_ctls(0, i), m_ctls(1, i), i);
+		mesh.AddNewVertex(GeomVert(m_ctls(0, i), m_ctls(1, i)));
+	}
+	dt.insert(v);
+	std::vector<Triangle2*> Ts;
+	dt.getTrianglePointers(Ts);
+
+	// add Voronoi vertices
+	for (int i = 0; i < Ts.size(); ++i)
+	{
+		v.push_back(std::get<0>(Ts[i]->getDual()));
+		v[n_ctls + i].setCustomIndex(n_ctls + i);
+	}
+	Mesh meshf;
+	for (int i = 0; i < v.size(); ++i)
+	{
+		meshf.AddNewVertex(GeomVert(v[i].x(), v[i].y()));
+	}
+	
+	Fade_2D dtf;
+	dtf.insert(v);
+	std::vector<Triangle2*> Tsf;
+	dtf.getTrianglePointers(Tsf);
+
+	for (int i = 0; i < Tsf.size(); ++i)
+	{
+		int id[3];
+		for (int j = 0; j<3; ++j)
+			id[j] = Tsf[i]->getCorner(j)->getCustomIndex();
+		TopoFacet topofacet;
+		for (int j = 0; j < 3; ++j)
+			topofacet.AddIncVertex(id[j]);
+		meshf.AddFacet(topofacet);
+	}
+	
+	std::vector<int> g;
+	if (meshf.Crust(g,n_ctls))
+	{
+		if (std::find(g.begin(), g.end(), -1) != g.end()) { return 0; }
+		int flag = 1;
+
+		// reorder control points, do a DFS
+		std::vector<int> visited(n_ctls, 0);
+		std::vector<int> order_v;
+		std::stack<int> s;
+		s.push(0);
+		while (!s.empty())
+		{
+			int v = s.top();
+			s.pop();
+			if (visited[v] == 0)
+			{
+				visited[v] = 1;
+				order_v.push_back(v);
+				s.push(g[2 * v + 0]);
+				if (g[2 * v + 1] > -1)
+					s.push(g[2 * v + 1]);
+			}
+		}
+
+		Eigen::Matrix3Xd ordered_ctls = Eigen::Matrix3Xd::Zero(3, order_v.size());
+		for (int i = 0; i < order_v.size(); ++i)
+		{
+			ordered_ctls.col(i) = m_ctls.col(order_v[i]);
+		}
+		m_ctls.leftCols(order_v.size()) = ordered_ctls;
+
+		return flag;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 std::vector<Eigen::Vector3d> Curve::Subdivide(std::vector<Eigen::Vector3d> points, int m, double u)

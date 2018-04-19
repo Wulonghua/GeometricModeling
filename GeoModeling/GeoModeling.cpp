@@ -373,6 +373,14 @@ void GeoModeling::doGenCubicSplineSurface()
 void GeoModeling::doNNCrust()
 {
 	m_curve->NNCrust();
+	m_curve->generateCurves();
+	ui.glWidget->updateRender();
+}
+
+void GeoModeling::doCrust()
+{
+	m_curve->Crust();
+	m_curve->generateCurves();
 	ui.glWidget->updateRender();
 }
 
@@ -405,4 +413,5 @@ void GeoModeling::initConnections()
 	connect(ui_control.pushButton_BezierSurface, &QPushButton::clicked, this, &GeoModeling::doGenBezierSurface);
 	connect(ui_control.pushButton_CubicBsplineSurface, &QPushButton::clicked, this, &GeoModeling::doGenCubicSplineSurface);
 	connect(ui_control.pushButton_NNCrust, &QPushButton::clicked, this, &GeoModeling::doNNCrust);
+	connect(ui_control.pushButton_Crust, &QPushButton::clicked, this, &GeoModeling::doCrust);
 }

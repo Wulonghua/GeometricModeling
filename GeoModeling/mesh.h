@@ -243,6 +243,7 @@ public:
 	void SubLoop(std::shared_ptr<Mesh> mesh);
 
 	bool NNCrust(std::vector<int>& graph);
+	bool Crust(std::vector<int>& graph, int n_p);
 
 	// for rendering purpose
 	vector<float> renderVerts;

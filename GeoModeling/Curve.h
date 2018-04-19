@@ -25,7 +25,7 @@ public:
 	void generateCurves();
 
 	bool NNCrust();
-	void Crust();
+	int  Crust();
 
 	
 
