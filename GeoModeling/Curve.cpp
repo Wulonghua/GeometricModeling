@@ -577,9 +577,10 @@ void Curve::generateCurves()
 	}
 }
 
-bool Curve::NNCrust()
+int Curve::NNCrust()
 {
 	using namespace GEOM_FADE2D;
+	if (m_closed && m_curveType == Bezier) n_ctls--;
 	Fade_2D dt;
 	std::vector<Point2> v;
 	v.resize(n_ctls);
@@ -607,7 +608,21 @@ bool Curve::NNCrust()
 	std::vector<int> g;
 	if (mesh.NNCrust(g))
 	{
-		if (std::find(g.begin(), g.end(), -1) != g.end()) { return false; }
+		int flag = 2;
+		int initial_v = 0;
+		//if (std::find(g.begin(), g.end(), -1) != g.end()) { return 0; }
+		int n = 0;
+		for (int i = 0; i < g.size(); ++i)
+		{
+			if (g[i] < 0)
+			{
+				n++;
+				initial_v = i / 2;
+			}
+		}
+
+		if (n == 1 || n > 2) return 0;
+		if (n == 2) flag = 1;
 
 		// reorder control points, do a DFS
 		std::vector<int> visited(n_ctls, 0);
@@ -622,9 +637,8 @@ bool Curve::NNCrust()
 			{
 				visited[v] = 1;
 				order_v.push_back(v);
-				s.push(g[2*v+0]);
-				if (g[2 * v + 1] > -1)
-					s.push(g[2 * v + 1]);
+				if (g[2 * v] > -1)		s.push(g[2 * v]);
+				if (g[2 * v + 1] > -1)	s.push(g[2 * v + 1]);
 			}
 		}
 		
@@ -634,12 +648,26 @@ bool Curve::NNCrust()
 			ordered_ctls.col(i) = m_ctls.col(order_v[i]);
 		}
 		m_ctls.leftCols(order_v.size()) = ordered_ctls;
-		return true;
+		
+		if (flag == 1)
+		{
+			m_closed = false;
+		}
+		else if (flag == 2)
+		{
+			m_closed = true;
+			if (m_curveType == Bezier)
+			{
+				m_ctls.col(n_ctls) = m_ctls.col(0);
+				n_ctls++;
+			}
+		}
+		return flag;
 		
 	}
 	else 
 	{
-		return false;
+		return 0;
 	}
 
 	
@@ -648,6 +676,7 @@ bool Curve::NNCrust()
 int Curve::Crust()
 {
 	using namespace GEOM_FADE2D;
+	if (m_closed && m_curveType == Bezier) n_ctls--;
 	Fade_2D dt;
 	std::vector<Point2> v;
 	v.resize(n_ctls);
@@ -692,14 +721,27 @@ int Curve::Crust()
 	std::vector<int> g;
 	if (meshf.Crust(g, n_ctls))
 	{
-		if (std::find(g.begin(), g.end(), -1) != g.end()) { return 0; }
-		int flag = 1;
+		int flag = 2;
+		int initial_v = 0;
+		//if (std::find(g.begin(), g.end(), -1) != g.end()) { return 0; }
+		int n=0;
+		for (int i = 0; i < g.size(); ++i)
+		{
+			if (g[i] < 0)
+			{
+				n++;
+				initial_v = i / 2;
+			}
+		}
+
+		if (n == 1 || n > 2) return 0;
+		if (n == 2) flag = 1;
 
 		// reorder control points, do a DFS
 		std::vector<int> visited(n_ctls, 0);
 		std::vector<int> order_v;
 		std::stack<int> s;
-		s.push(0);
+		s.push(initial_v);
 		while (!s.empty())
 		{
 			int v = s.top();
@@ -708,9 +750,8 @@ int Curve::Crust()
 			{
 				visited[v] = 1;
 				order_v.push_back(v);
-				s.push(g[2 * v + 0]);
-				if (g[2 * v + 1] > -1)
-					s.push(g[2 * v + 1]);
+				if (g[2 * v] > -1)		s.push(g[2 * v]);
+				if (g[2 * v + 1] > -1)	s.push(g[2 * v + 1]);
 			}
 		}
 
@@ -721,6 +762,19 @@ int Curve::Crust()
 		}
 		m_ctls.leftCols(order_v.size()) = ordered_ctls;
 
+		if (flag == 1)
+		{
+			m_closed = false;
+		}
+		else if (flag == 2)
+		{
+			m_closed = true;
+			if (m_curveType == Bezier)
+			{
+				m_ctls.col(n_ctls) = m_ctls.col(0);
+				n_ctls++;
+			}
+		}
 		return flag;
 	}
 	else

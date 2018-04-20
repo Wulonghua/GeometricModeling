@@ -377,16 +377,44 @@ void GeoModeling::doGenCubicSplineSurface()
 
 void GeoModeling::doNNCrust()
 {
-	m_curve->NNCrust();
-	m_curve->generateCurves();
-	ui.glWidget->updateRender();
+	int result = m_curve->NNCrust();
+	if (result > 0)
+	{
+		if (result == 1)
+			ui_control.checkBox_closed->setChecked(false);
+		else if (result == 2)
+			ui_control.checkBox_closed->setChecked(true);
+		m_curve->generateCurves();
+		ui.glWidget->updateRender();
+	}
+	else
+	{
+		QMessageBox::warning(
+			this,
+			tr("Warning"),
+			tr("Input points are not valid: not densely sampled or has branch."));
+	}
 }
 
 void GeoModeling::doCrust()
 {
-	m_curve->Crust();
-	m_curve->generateCurves();
-	ui.glWidget->updateRender();
+	int result = m_curve->Crust();
+	if (result > 0)
+	{
+		if (result == 1)
+			ui_control.checkBox_closed->setChecked(false);
+		else if (result == 2)
+			ui_control.checkBox_closed->setChecked(true);
+		m_curve->generateCurves();
+		ui.glWidget->updateRender();
+	}
+	else
+	{
+		QMessageBox::warning(
+			this,
+			tr("Warning"),
+			tr("Input points are not valid: not densely sampled or has branch."));
+	}
 }
 
 void GeoModeling::initConnections()

@@ -25,7 +25,7 @@ public:
 	void generateCubicBspline();
 	void generateCurves();
 
-	bool NNCrust();
+	int  NNCrust();
 	int  Crust();
 
 	std::vector<Eigen::Vector3d> Subdivide(std::vector<Eigen::Vector3d> points, int m, double u);
