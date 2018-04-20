@@ -117,6 +117,29 @@ void RenderWidget::mousePressEvent(QMouseEvent * e)
 			updateMesh();
 			updateRender();
 		}
+		if (m_curve->m_contrlType == Curve::DEL)
+		{
+			camera()->getModelViewMatrix(m_ModelView);
+			camera()->getProjectionMatrix(m_Projection);
+			camera()->getViewport(m_viewport);
+
+			float winX = e->pos().x();
+			float winY = e->pos().y();
+
+			gluUnProject(winX, winY, 0.0, m_ModelView, m_Projection, m_viewport, &unproj_p0[0], &unproj_p0[1], &unproj_p0[2]);
+			gluUnProject(winX, winY, 1.0, m_ModelView, m_Projection, m_viewport, &unproj_p1[0], &unproj_p1[1], &unproj_p1[2]);
+			
+			m_picked = m_curve->pickControlPoint(unproj_p0, unproj_p1);
+			if (m_picked > -1 && QMessageBox::Yes == QMessageBox::question(this,
+				tr("Delete Point"),
+				tr("Confirm to delete this chosen point?")))
+			{
+				m_curve->deleteControlPoint(m_picked);
+				m_curve->generateCurves();
+				updateMesh();
+				updateRender();
+			}
+		}
 		else if (m_curve->m_contrlType == Curve::MOVE)
 		{
 			float winX = e->pos().x();

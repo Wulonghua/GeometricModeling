@@ -148,6 +148,40 @@ int Curve::pickControlPoint(double p0[3], double p1[3])
 	return -1;
 }
 
+void Curve::deleteControlPoint(int del_i)
+{
+	if (m_curveType == Bezier && m_closed)
+	{
+		
+		if (del_i != 0 && del_i != n_ctls - 1)
+		{
+			n_ctls -= 1;
+			for (int i = del_i; i < n_ctls; ++i)
+			{
+				m_ctls.col(i) = m_ctls.col(i + 1);
+			}
+		}
+		else
+		{
+			n_ctls -= 1;
+			for (int i = 0; i < n_ctls; ++i)
+			{
+				m_ctls.col(i) = m_ctls.col(i + 1);
+			}
+			m_ctls.col(n_ctls - 1) = m_ctls.col(0);
+		}
+	}
+	else
+	{
+		n_ctls -= 1;
+		for (int i = del_i ; i < n_ctls; ++i)
+		{
+			m_ctls.col(i) = m_ctls.col(i+1);
+		}
+	}
+
+}
+
 double Curve::getBinomialCoeff(int n, int i)
 {
 	if(i==0 || i==n)

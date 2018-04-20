@@ -17,6 +17,7 @@ public:
 	void addControlPoints(double p0[3], double p1[3] , int plane=0); // add point from the selecting line intersecting at the xy plane (plane=0), yz plane(plane =1)
 	void setControlPoint(double p0[3], double p1[3], int id, int plane = 0);
 	int  pickControlPoint(double p0[3], double p1[3]);
+	void deleteControlPoint(int del_i);
 	void generateBezierPoints();
 	void generateBezierSurface(std::shared_ptr<Mesh> mesh);
 	void generateCubicSplineSurface(std::shared_ptr<Mesh> mesh);
@@ -46,7 +47,7 @@ private:
 
 public:
 	enum Curve_Type {Bezier, Cubic_B_spline, Quadric_B_spline};
-	enum Control_Type {ADD, MOVE, VIEW};
+	enum Control_Type {ADD, DEL, MOVE, VIEW};
 	enum Gen_Type { SAMPLE, SUBDIVISION };
 
 	Curve_Type		m_curveType;

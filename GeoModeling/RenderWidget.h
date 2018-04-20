@@ -5,6 +5,7 @@
 #include "mesh.h"
 #include <iostream>
 #include <memory>
+#include <QMessagebox>
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QOpenGLFunctions>

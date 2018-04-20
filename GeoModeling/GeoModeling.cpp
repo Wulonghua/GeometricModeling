@@ -29,6 +29,11 @@ void GeoModeling::changeControlState()
 		m_curve->m_contrlType = Curve::ADD;
 		m_traj->m_contrlType = Curve::ADD;
 	}
+	if (ui_control.radioButton_delPoints->isChecked())
+	{
+		m_curve->m_contrlType = Curve::DEL;
+		m_traj->m_contrlType = Curve::DEL;
+	}
 	else if (ui_control.radioButton_movePoints->isChecked())
 	{
 		m_curve->m_contrlType = Curve::MOVE;
@@ -387,6 +392,7 @@ void GeoModeling::doCrust()
 void GeoModeling::initConnections()
 {
 	connect(ui_control.radioButton_addPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
+	connect(ui_control.radioButton_delPoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
 	connect(ui_control.radioButton_movePoints, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
 	connect(ui_control.radioButton_View, &QRadioButton::clicked, this, &GeoModeling::changeControlState);
 	connect(ui_control.radioButton_Bezier, &QRadioButton::clicked, this, &GeoModeling::changeCurveType);
