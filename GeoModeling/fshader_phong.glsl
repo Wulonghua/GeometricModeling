@@ -43,7 +43,7 @@ void main(void)
 	else{
 		//specular = vec4(0, 0, 0, 1);
 		specular = specular_coef* light_specular*pow(rdotv, 10);
-		vColor   = vec4(0.25,0.9,0.4,1);
+		//vColor   = vec4(0.25,0.9,0.4,1);
 		diffuse  = -diffuse;
 	}
 	vec4 tmp = clamp(vColor *(ambient + diffuse)+specular,0.0,1.0);

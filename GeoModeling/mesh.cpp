@@ -206,14 +206,21 @@ void Mesh::SubCatmullClark(std::shared_ptr<Mesh> mesh)
 		GeomVert v;
 		int v0 = mTopoEdges[i].GetVertex(0);
 		int v1 = mTopoEdges[i].GetVertex(1);
-		if (mTopoEdges[i].GetNumberIncFacets() < 2)
+		if (mTopoEdges[i].GetNumberIncFacets() < 1)
 		{
-			std::cerr << "Currently cannot handle boundary!!!" << std::endl;
+			std::cerr << "Something is wrong!!!" << std::endl;
 			exit(1);
 		}
-		int f0 = mTopoEdges[i].GetIncFacet(0);
-		int f1 = mTopoEdges[i].GetIncFacet(1);
-		v = (mGeomVerts[v0] + mGeomVerts[v1] + mFcenters[f0] + mFcenters[f1])*0.25;
+		else if (mTopoEdges[i].GetNumberIncFacets() == 1)
+		{
+			v = (mGeomVerts[v0] + mGeomVerts[v1]) * 0.5;
+		}
+		else if (mTopoEdges[i].GetNumberIncFacets() == 2)
+		{
+			int f0 = mTopoEdges[i].GetIncFacet(0);
+			int f1 = mTopoEdges[i].GetIncFacet(1);
+			v = (mGeomVerts[v0] + mGeomVerts[v1] + mFcenters[f0] + mFcenters[f1])*0.25;
+		}
 		mesh->AddNewVertex(v);
 		e_pid[i] = pid++;
 	}
@@ -226,29 +233,41 @@ void Mesh::SubCatmullClark(std::shared_ptr<Mesh> mesh)
 		int n = mTopoVerts[i].GetNumberIncEdges();
 		if (m != n)
 		{
-			std::cerr << "Cannot handle this case." << std::endl;
-			exit(1);
+			GeomVert R;
+			int n_w = 1;
+			int n_adje = mTopoVerts[i].GetNumberIncEdges();
+			for (int j = 0; j < n_adje; ++j)
+			{
+				int ei = mTopoVerts[i].GetIncEdge(j);
+				if (mTopoEdges[ei].GetNumberIncFacets() == 1)
+				{
+					R += mEcenters[ei];
+					n_w++;
+				}
+			}
+			v = (mGeomVerts[i] + R) / n_w;
 		}
-		
-		GeomVert Q;
-		int n_adjf = mTopoVerts[i].GetNumberIncFacets();
-		for (int j = 0; j < n_adjf; ++j)
+		else
 		{
-			int fi = mTopoVerts[i].GetIncFacet(j);
-			Q += mFcenters[fi];
-		}
-		Q = Q / n_adjf;
+			GeomVert Q;
+			int n_adjf = mTopoVerts[i].GetNumberIncFacets();
+			for (int j = 0; j < n_adjf; ++j)
+			{
+				int fi = mTopoVerts[i].GetIncFacet(j);
+				Q += mFcenters[fi];
+			}
+			Q = Q / n_adjf;
 
-		GeomVert R;
-		int n_adje = mTopoVerts[i].GetNumberIncEdges();
-		for (int j = 0; j < n_adje; ++j)
-		{
-			int ei = mTopoVerts[i].GetIncEdge(j);
-			R += mEcenters[ei];
+			GeomVert R;
+			int n_adje = mTopoVerts[i].GetNumberIncEdges();
+			for (int j = 0; j < n_adje; ++j)
+			{
+				int ei = mTopoVerts[i].GetIncEdge(j);
+				R += mEcenters[ei];
+			}
+			R = R / n_adje;
+			v = (Q + R * 2 + mGeomVerts[i] * (n - 3)) / n;
 		}
-		R = R / n_adje;
-		
-		v = (Q + R * 2 + mGeomVerts[i] * (n - 3)) / n;
 		mesh->AddNewVertex(v);
 		v_pid[i] = pid++;
 	}
